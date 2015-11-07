@@ -8,7 +8,6 @@ class TableController {
 
     this._model_observers = [];
     this.element = Dom.table(
-      this.columnContainer = Dom.colgroup(),
       /*thead(
         this.colHeaderContainer = Dom.tr()
       ),*/
@@ -34,16 +33,9 @@ class TableController {
     }
 
     // Remove old DOM
-    removeChildren(this.columnContainer);
     removeChildren(this.rowContainer);
 
     this._model = _;
-
-    // Create DOM for columns
-    for (let column of this.model.columns) {
-      const columnController = new ColumnController(column);
-      this.columnContainer.appendChild(columnController.element);
-    }
 
     // Create DOM for rows
     for (let r of Fn.range(this.model.height)) {
@@ -152,18 +144,6 @@ class TableController {
     const index = change.index;
     const remove = change.remove;
     const insert = change.insert;
-
-    // Remove old columns
-    for (let i of Fn.range(remove)) {
-      removeChildAtIndex(this.columnContainer, index + i);
-    }
-
-    // Insert new columns
-    for (let i of Fn.range(insert)) {
-      const column = this.model.columns[index + i];
-      const columnController = new ColumnController(column);
-      insertChildAtIndex(this.columnContainer, index + i, columnController.element);
-    }
 
     // Splice each row
     for (let r of Fn.range(this.model.height)) {
