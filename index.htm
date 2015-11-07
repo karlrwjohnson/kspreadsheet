@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel='stylesheet' href='styles-main.css' />
+  <link href='https://fonts.googleapis.com/css?family=Roboto+Slab' rel='stylesheet' type='text/css'>
+</head>
+<body>
+  <div id='instructions'>
+    <h1>How to use</h1>
+    <ul>
+      <li>Click in a box to type</li>
+      <li>Drag the right edge of a box to grow or shrink it</li>
+      <li>Move a table by hovering over it and grabbing the textured border</li>
+      <li>Navigate a table using Tab and Enter to move right and down, and
+        Shift+Tab and Shift+Enter to move left and up.</li>
+      <li>Add columns and rows to a table by tabbing or entering past the
+        edge of it</li>
+    </ul>
+  </div>
+  <div id='app-root'>
+    <header>
+      <h1>KSpreadsheet</h1>
+    </header>
+    <div>
+      <main>
+      </main>
+    </div>
+  </div>
+</body>
+
+<script src='jasmine.js'></script>
+<script src='init-jasmine.js'></script>
+
+<script src='libfunctional.js'></script>
+<script src='libdom.js'></script>
+<script src='libmodel.js'></script>
+<script src='libview.js'></script>
+<script src='Observable.js'></script>
+<script src='Cell.js'></script>
+<script src='Column.js'></script>
+<script src='Table.js'></script>
+<script src='Document.js'></script>
+<script src='CellController.js'></script>
+<script src='ColumnController.js'></script>
+<script src='TableController.js'></script>
+<script src='DocumentController.js'></script>
+
+<script>
+  'use strict';
+
+  // Run unit tests
+  jasmine_env.execute();
+
+  const doc = new Document();
+  const documentController = new DocumentController(doc);
+
+  document.body.appendChild(
+    Dom.div({id: 'app-root'},
+      Dom.header(
+        Dom.h1('KSpreadsheet')
+      ),
+      Dom.div(
+        Dom.aside(
+          document.getElementById('instructions')
+        ),
+        documentController.element
+      )
+    )
+  );
+
+  function demo () {
+    const table = new Table([5, 5]);
+    doc.addTable(table);
+
+    table.height = 7;
+    table.width = 6;
+    [
+      ['Attributes', 'Base', 'Racial', 'Misc', 'Total', 'Mod'],
+      ['STR', 13, 0, 0, 15, 1],
+      ['DEX', 17, 0, 1, 18, 4],
+      ['CON', 13, 0, 1, 14, 2],
+      ['INT', 18, 2, 0, 20, 5],
+      ['WIS', 13, 0, 0, 13, 1],
+      ['CHA', 10, 0, 0, 10, 0 ],
+    ].forEach((row, r) => row.forEach((value, c) => table.getCell(r, c).value = value));
+
+    table.columns[0].width = 6;
+    table.columns[1].width = 4;
+    table.columns[2].width = 4;
+    table.columns[3].width = 4;
+    table.columns[4].width = 4;
+    table.columns[5].width = 4;
+  }
+
+  demo();
+
+</script>
+</html>
