@@ -25,7 +25,9 @@ function domFactoryFactory (elementName) {
 }
 
 const Dom = Object.freeze({
+  a        : domFactoryFactory('a'),
   aside    : domFactoryFactory('aside'),
+  button   : domFactoryFactory('button'),
   col      : domFactoryFactory('col'),
   colgroup : domFactoryFactory('colgroup'),
   div      : domFactoryFactory('div'),
@@ -41,6 +43,7 @@ const Dom = Object.freeze({
   input    : domFactoryFactory('input'),
   li       : domFactoryFactory('li'),
   main     : domFactoryFactory('main'),
+  nav      : domFactoryFactory('nav'),
   ol       : domFactoryFactory('ol'),
   option   : domFactoryFactory('option'),
   p        : domFactoryFactory('p'),

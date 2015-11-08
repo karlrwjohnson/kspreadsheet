@@ -1,37 +1,47 @@
 #app-root {
-  background:rgba(230,230,240,1);
+  /* Take up the entire screen */
   width:auto; height:auto;
   top:0;      left:0;
   bottom:0;   right:0;
   position: fixed;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   font-family: 'Roboto Slab', serif;
 }
-#app-root header {
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+.flex-grow {
+  flex-grow: 1;
+}
+header {
   background: gray;
   color: white;
   padding: 1em;
 }
-#app-root header h1 {
+header h1 {
   margin: 0;
 }
-#app-root>div {
-  display:flex;
-  flex-direction: row;
-  flex-grow: 1;
-}
-#app-root aside {
+aside {
   width:30em;
   padding: 1em;
   display: block;
-  order: 1;
 }
-#app-root main {
-  background:#eee local;
-  flex-grow: 1;
-  line-height:1em;
+
+.document {
   position:relative;
+  overflow:scroll;
+
+  font-size: 16px;
+  line-height: 1em;
+
+  background-color: #eeeeee;
+  background-attachment: local;
   background-image: url('data:image/svg+xml;utf8,\
     <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg">\
       <line x1="1" x2="1" y1="0" y2="4" style="stroke:#ccc;stroke-width:2px" />\
@@ -40,19 +50,21 @@
       <line y1="1" y2="1" x1="14" x2="16" style="stroke:#ccc;stroke-width:2px" />\
     </svg>\
   ');
-  font-size:16px;
-  overflow:scroll;
+  box-shadow: 0.5em 1em 1em -1em rgba(0,0,0,0.5) inset;
 }
-#app-root main table {
+.document table {
   border-spacing: 0;
   table-layout: fixed;
   position: absolute;
+
+  box-shadow: 0.1em 0.1em 1em -0.2em rgba(0,0,0,0.5);
 }
-#app-root main table:hover:before {
+/* Drag border */
+.document table:hover:before {
   content: '';
   display: block;
   position: absolute;
-  top: -8px;    left: -8px;
+  top:    -8px; left:  -8px;
   bottom: -8px; right: -8px;
   height: auto;  width: auto;
   background: url('data:image/svg+xml;utf8,\
@@ -69,16 +81,16 @@
   ');
   cursor: move;
 }
-#app-root main tbody {
+.document tbody {
   border-spacing: none;
   counter-reset: row 0;
 }
-#app-root main tr {
+.document tr {
   counter-increment: row;
   counter-reset: col 0;
 }
 /* Row Headings */
-/*#app-root main table:hover tr:after { /* ::before screws up the column widths * /
+/*.document table:hover tr:after { /* ::before screws up the column widths * /
   content: 'R' counter(row);
   position: absolute;
   display: block;
@@ -101,12 +113,13 @@
   transform-origin: 50% 100%;
   transform: rotate(-90deg);
 }*/
-#app-root main td {
+.document td {
   position:relative;
   height:2em;
   padding:0;
+  box-shadow: 1px 1px 0px 1px #999;
 }
-/*#app-root main td:hover:before {
+/*.document td:hover:before {
   content: 'C' counter(col);
   position: absolute;
   display: block;
@@ -123,7 +136,7 @@
   border-right:none;
   border-bottom:none;
 }*/
-#app-root main td:after {
+.document td:after {
   content: '';
   position: absolute;
   display: block;
@@ -137,15 +150,15 @@
   margin-left:-0.2em;
   z-index: 1;
 }
-#app-root main input {
+.document input {
   font: inherit;
   padding: 0 0.5em;
 
   box-sizing:border-box;
-  box-shadow: 1px 1px 0px 1px #999;
   border:2px solid #999;
   border-right:none;
   border-bottom:none;
+  margin-right:-2px;
 
   display:block;
   width:100%;
@@ -155,6 +168,26 @@
   right:0;
   line-height: 2em;
   position:absolute;
+}
+.document input:focus {
+  outline: none;
+  box-shadow: 0.05em 0.05em 0.4em 0.15em rgba(0, 85, 255, 0.4) inset;
+}
+.document tr:first-child td:first-child,
+.document tr:first-child td:first-child input {
+  border-top-left-radius:0.5em;
+}
+.document tr:first-child td:last-child,
+.document tr:first-child td:last-child input {
+  border-top-right-radius:0.5em;
+}
+.document tr:last-child td:first-child,
+.document tr:last-child td:first-child input {
+  border-bottom-left-radius:0.5em;
+}
+.document tr:last-child td:last-child,
+.document tr:last-child td:last-child input {
+  border-bottom-right-radius:0.5em;
 }
 
 

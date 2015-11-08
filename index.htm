@@ -17,15 +17,6 @@
         edge of it</li>
     </ul>
   </div>
-  <div id='app-root'>
-    <header>
-      <h1>KSpreadsheet</h1>
-    </header>
-    <div>
-      <main>
-      </main>
-    </div>
-  </div>
 </body>
 
 <script src='jasmine.js'></script>
@@ -54,15 +45,15 @@
   const documentController = new DocumentController(doc);
 
   document.body.appendChild(
-    Dom.div({id: 'app-root'},
-      Dom.header(
-        Dom.h1('KSpreadsheet')
-      ),
-      Dom.div(
-        Dom.aside(
-          document.getElementById('instructions')
+    Dom.div({id: 'app-root', 'class': 'flex-row'},
+      Dom.div({'class': 'flex-column flex-grow'},
+        Dom.header(
+          Dom.h1('KSpreadsheet')
         ),
         documentController.element
+      ),
+      Dom.aside(
+        document.getElementById('instructions')
       )
     )
   );

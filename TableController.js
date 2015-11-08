@@ -2,8 +2,11 @@
 
 const TABLE_MOVE_BUTTON = 1;
 
-class TableController {
+const TABLE_EMPTY_BLUR = Symbol('TABLE_EMPTY_BLUR');
+
+class TableController extends Observable {
   constructor (model) {
+    super();
     bindObservers(this);
 
     this._model_observers = [];
@@ -74,6 +77,7 @@ class TableController {
     cellController.observe(SOUTH, this._on_focus_south);
     cellController.observe(EAST, this._on_focus_east);
     cellController.observe(WEST, this._on_focus_west);
+    cellController.observe(CELL_EMPTY_BLUR, this._on_cell_empty_blur);
     return cellController;
   }
 
@@ -119,6 +123,13 @@ class TableController {
           Fn.all(this.model.getCellsInColumn(this.model.width - 1), cell => cell.isEmpty())) {
         this.model.width --;
       }
+    }
+  }
+
+  _on_cell_empty_blur () {
+    console.log(document.activeElement);
+    if (Fn.all(this.model.getAllCells(), cell => cell.isEmpty())) {
+      this.notify(TABLE_EMPTY_BLUR, this);
     }
   }
 

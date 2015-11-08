@@ -54,8 +54,8 @@ class Table extends Observable {
       throw new OutOfBoundsException();
     }
     else {
-      for (let i = 0; i < this.width; i++) {
-        yield this.data[row][i];
+      for (let cell of this.data[row]) {
+        yield cell;
       }
     }
   }
@@ -65,8 +65,16 @@ class Table extends Observable {
       throw new OutOfBoundsException();
     }
     else {
-      for (let i = 0; i < this.height; i++) {
+      for (let i of Fn.range(this.height)) {
         yield this.data[i][column];
+      }
+    }
+  }
+
+  *getAllCells() {
+    for (let row of this.data) {
+      for (let cell of row) {
+        yield cell;
       }
     }
   }

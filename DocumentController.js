@@ -8,9 +8,19 @@ class DocumentController {
     bindObservers(this);
 
     this._document_observers = [];
-    this.element = Dom.main();
+    this.element = Dom.div({'class': 'document-root flex-column flex-grow'},
+      this.toolbarContainer = Dom.nav({'class': 'toolbar'},
+        this.deleteTableButton = Dom.button('Delete Table'),
+        this.insertColumnButton = Dom.button({title: 'Insert Column'}, 'Insert Column'),
+        this.deleteColumnButton = Dom.button({title: 'Delete Column'}, 'Delete Column'),
+        this.insertRowButton = Dom.button({title: 'Insert Row'}, 'Insert Row'),
+        this.deleteRowButton = Dom.button({title: 'Delete Row'}, 'Delete Row')
+      ),
+      this.tableContainer = Dom.div({'class': 'document flex-grow'})
+    );
 
-    this.element.addEventListener('click', this._on_click);
+    this.tableContainer.addEventListener('dblclick', this._on_click);
+    this.deleteTableButton.addEventListener('click', () => {})
 
     this.document = document;
   }
@@ -33,24 +43,28 @@ class DocumentController {
 
   _on_addTable(table) {
     const tableController = new TableController(table);
-    this.element.appendChild(tableController.element);
+    tableController.observe(TABLE_EMPTY_BLUR, this._on_table_empty_blur);
+    this.tableContainer.appendChild(tableController.element);
     tableController.focus();
   }
 
   _on_removeTable(table) {
-    const tableController = new TableController(table);
-    this.element.removeChild(tableController.element);
+    this.tableContainer.removeChild(tableController.element);
   }
 
   _on_click(evt) {
-    if (evt.target === this.element) {
+    if (evt.target === this.tableContainer) {
       console.log(evt);
       if (evt.buttons === CREATE_TABLE_BUTTON) {
-        const emSize = getEmSize(this.element);
+        const emSize = getEmSize(this.tableContainer);
         const em_x = Math.round(evt.offsetX / emSize);
         const em_y = Math.round(evt.offsetY / emSize);
-        //this.document.addTable(new Table([em_x, em_y]))
+        this.document.addTable(new Table([em_x, em_y]))
       }
     }
+  }
+
+  _on_table_empty_blur(table) {
+    console.log('Can remove table');
   }
 }

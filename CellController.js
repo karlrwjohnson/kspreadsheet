@@ -7,6 +7,8 @@ const SOUTH = Symbol('SOUTH');
 const EAST = Symbol('EAST');
 const WEST = Symbol('WEST');
 
+const CELL_EMPTY_BLUR = Symbol('CELL_EMPTY_BLUR');
+
 class CellController extends Observable {
   constructor (cell, column) {
     super();
@@ -24,8 +26,9 @@ class CellController extends Observable {
     new DiscreteDraggable(this.element, COLUMN_RESIZE_BUTTON,
         (dx, dy) => this.column.width += dx);
     this.inputElement.addEventListener('keydown', this._on_key_down);
-    this.inputElement.addEventListener('change', this._on_element_change);
+    this.inputElement.addEventListener('keyup', this._on_element_change);
     this.inputElement.addEventListener('mousedown', (evt) => evt.stopPropagation());
+    this.inputElement.addEventListener('blur', this._on_blur);
 
     this.cell = cell;
     this.column = column;
@@ -111,6 +114,12 @@ class CellController extends Observable {
           this.notify(WEST, this)
         }
         break;
+    }
+  }
+
+  _on_blur (evt) {
+    if (this.inputElement.value === '') {
+      this.notify(CELL_EMPTY_BLUR, this);
     }
   }
 }
