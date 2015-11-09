@@ -8,10 +8,18 @@ const EAST = Symbol('EAST');
 const WEST = Symbol('WEST');
 
 const CELL_EMPTY_BLUR = Symbol('CELL_EMPTY_BLUR');
+const CELL_FOCUS = Symbol('CELL_FOCUS');
 
 class CellController extends Observable {
   constructor (cell, column) {
-    super();
+    super([
+      CELL_EMPTY_BLUR,
+      CELL_FOCUS,
+      NORTH,
+      SOUTH,
+      EAST,
+      WEST,
+    ]);
     bindObservers(this);
 
     this._model_observers = [];
@@ -28,6 +36,7 @@ class CellController extends Observable {
     this.inputElement.addEventListener('keydown', this._on_key_down);
     this.inputElement.addEventListener('keyup', this._on_element_change);
     this.inputElement.addEventListener('mousedown', (evt) => evt.stopPropagation());
+    this.inputElement.addEventListener('focus', this._on_focus);
     this.inputElement.addEventListener('blur', this._on_blur);
 
     this.cell = cell;
@@ -42,7 +51,7 @@ class CellController extends Observable {
     this._cell = _;
 
     if (this.cell) {
-      this._model_observers.push(this.cell.observe('value', this._on_value));
+      this._model_observers.push(this.cell.observe(CELL_VALUE, this._on_value));
     }
 
     this._on_value();
@@ -56,7 +65,7 @@ class CellController extends Observable {
     this._column = _;
 
     if (this.column) {
-      this._column_observers.push(this.column.observe('width', this._on_width));
+      this._column_observers.push(this.column.observe(COLUMN_WIDTH, this._on_width));
     }
 
     this._on_width();

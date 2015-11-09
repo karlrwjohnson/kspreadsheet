@@ -15,9 +15,17 @@ function getDimensions (array) {
   }
 }
 
+const TABLE_POSITION = Symbol('TABLE_POSITION');
+const TABLE_SPLICE_ROWS = Symbol('TABLE_SPLICE_ROWS');
+const TABLE_SPLICE_COLUMNS = Symbol('TABLE_SPLICE_COLUMNS');
+
 class Table extends Observable {
   constructor (position) {
-    super();
+    super([
+      TABLE_POSITION,
+      TABLE_SPLICE_ROWS,
+      TABLE_SPLICE_COLUMNS,
+    ]);
     this.data = [[new Cell('')]];
     this.columns = arrayFromFn(this.width, () => new Column(10));
 
@@ -35,7 +43,7 @@ class Table extends Observable {
     }
     else {
       this._position = [_[0], _[1]];
-      this.notify('position');
+      this.notify(TABLE_POSITION);
     }
   }
 
@@ -130,7 +138,7 @@ class Table extends Observable {
       [].splice.apply(this.data, [index, remove].concat(newRows));
 
       // notify
-      this.notify('spliceRows', {index: index, insert: insert, remove: remove});
+      this.notify(TABLE_SPLICE_ROWS, {index: index, insert: insert, remove: remove});
     }
   }
 
@@ -158,7 +166,7 @@ class Table extends Observable {
       }
 
       // notify
-      this.notify('spliceColumns', {index: index, insert: insert, remove: remove});
+      this.notify(TABLE_SPLICE_COLUMNS, {index: index, insert: insert, remove: remove});
     }
   }
 
@@ -184,7 +192,7 @@ describe('Table', ()=>{
     expect(table.position).toEqual([4,6]);
   });
 
-  it('should prevent mutation on its position array', ()=>{
+  it('should not be affected when its position return value is mutated', ()=>{
     table.position[0] = 17;
     expect(table.position).toEqual([3,5]);
   });
@@ -195,9 +203,9 @@ describe('Table', ()=>{
     expect(() => table.position = [-1, -1]).toThrow();
   });
 
-  it('should send a notification when its position changes', ()=>{
+  it('should notify observers when its position changes', ()=>{
     const on_position = jasmine.createSpy('on_position');
-    table.observe('position', on_position);
+    table.observe(TABLE_POSITION, on_position);
     table.position = [4,6];
     expect(on_position).toHaveBeenCalled();
   });
@@ -250,7 +258,7 @@ describe('Table', ()=>{
 
   it('should send a notification when the rows are changed', ()=>{
     const on_spliceRows = jasmine.createSpy('on_spliceRows');
-    table.observe('spliceRows', on_spliceRows);
+    table.observe(TABLE_SPLICE_ROWS, on_spliceRows);
     table.spliceRows(1, 1, 0);
     expect(on_spliceRows).toHaveBeenCalledWith(jasmine.objectContaining({
       index: 1,
@@ -302,7 +310,7 @@ describe('Table', ()=>{
 
   it('should send a notification when the columns are changed', ()=>{
     const on_spliceColumns = jasmine.createSpy('on_spliceColumns');
-    table.observe('spliceColumns', on_spliceColumns);
+    table.observe(TABLE_SPLICE_COLUMNS, on_spliceColumns);
     table.spliceColumns(1, 1, 0);
     expect(on_spliceColumns).toHaveBeenCalledWith(jasmine.objectContaining({
       index: 1,

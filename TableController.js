@@ -6,7 +6,7 @@ const TABLE_EMPTY_BLUR = Symbol('TABLE_EMPTY_BLUR');
 
 class TableController extends Observable {
   constructor (model) {
-    super();
+    super([TABLE_EMPTY_BLUR]);
     bindObservers(this);
 
     this._model_observers = [];
@@ -47,9 +47,9 @@ class TableController extends Observable {
     }
 
     // Add new observers
-    this._model_observers.push(this.model.observe('position', this._on_position));
-    this._model_observers.push(this.model.observe('spliceRows', this._on_row_splice));
-    this._model_observers.push(this.model.observe('spliceColumns', this._on_column_splice));
+    this._model_observers.push(this.model.observe(TABLE_POSITION, this._on_position));
+    this._model_observers.push(this.model.observe(TABLE_SPLICE_ROWS, this._on_row_splice));
+    this._model_observers.push(this.model.observe(TABLE_SPLICE_COLUMNS, this._on_column_splice));
 
     // Init properties
     this._on_position();
@@ -127,7 +127,7 @@ class TableController extends Observable {
   }
 
   _on_cell_empty_blur () {
-    console.log(document.activeElement);
+    //console.log(document.activeElement);
     if (Fn.all(this.model.getAllCells(), cell => cell.isEmpty())) {
       this.notify(TABLE_EMPTY_BLUR, this);
     }

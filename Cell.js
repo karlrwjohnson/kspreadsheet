@@ -1,8 +1,10 @@
 'use strict';
 
+const CELL_VALUE = Symbol('CELL_VALUE');
+
 class Cell extends Observable {
   constructor (value) {
-    super();
+    super([CELL_VALUE]);
     this._value = value;
   }
 
@@ -10,7 +12,7 @@ class Cell extends Observable {
 
   set value (_) {
     this._value = _;
-    this.notify('value');
+    this.notify(CELL_VALUE);
   }
 
   isEmpty () {
@@ -36,7 +38,7 @@ describe('Cell', ()=>{
 
   it('should notify about changes to its value', ()=>{
     const observer = jasmine.createSpy('on_value');
-    cell.observe('value', observer);
+    cell.observe(CELL_VALUE, observer);
     cell.value = 'qwer';
     expect(observer).toHaveBeenCalled();
   });

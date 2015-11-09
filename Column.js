@@ -1,8 +1,10 @@
 'use strict';
 
+const COLUMN_WIDTH = Symbol('COLUMN_WIDTH');
+
 class Column extends Observable {
   constructor (width) {
-    super();
+    super([COLUMN_WIDTH]);
     this._width = width;
   }
 
@@ -11,7 +13,7 @@ class Column extends Observable {
   set width (_) {
     if (_ > 0) {
       this._width = _;
-      this.notify('width');
+      this.notify(COLUMN_WIDTH);
     }
     else {
       throw new OutOfBoundsException();
@@ -20,22 +22,31 @@ class Column extends Observable {
 }
 
 describe('Column', ()=>{
+  const defaultWidth = 10;
+
+  let column;
+
+  beforeEach(()=>{
+    column = new Column(defaultWidth);
+  });
+
   it('should initialize its width on construction', ()=>{
-    const column = new Column(10);
-    expect(column.width).toBe(10);
+    expect(column.width).toBe(defaultWidth);
   });
 
   it('should get and set its width', ()=>{
-    const cell = new Column(10);
-    cell.width = 20;
-    expect(cell.width).toBe(20);
+    column.width = 20;
+    expect(column.width).toBe(20);
+  });
+
+  it('should prevent negative widths', ()=>{
+    expect(() => column.width = -1).toThrow();
   });
 
   it('should notify about changes to its width', ()=>{
-    const cell = new Column(10);
     const observer = jasmine.createSpy('on_width');
-    cell.observe('width', observer);
-    cell.width = 20;
+    column.observe(COLUMN_WIDTH, observer);
+    column.width = 20;
     expect(observer).toHaveBeenCalled();
   });
 });
