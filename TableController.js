@@ -2,14 +2,22 @@
 
 const TABLE_MOVE_BUTTON = 1;
 
-const TABLE_EMPTY_BLUR = Symbol('TABLE_EMPTY_BLUR');
+const TABLE_CONTROLLER_EMPTY_BLUR = Symbol('TABLE_CONTROLLER_EMPTY_BLUR');
+const TABLE_CONTROLLER_FOCUS = Symbol('TABLE_CONTROLLER_FOCUS');
+const TABLE_CONTROLLER_BLUR = Symbol('TABLE_CONTROLLER_BLUR');
 
 class TableController extends Observable {
   constructor (model) {
-    super([TABLE_EMPTY_BLUR]);
+    super([
+      TABLE_CONTROLLER_EMPTY_BLUR,
+      TABLE_CONTROLLER_FOCUS,
+      TABLE_CONTROLLER_BLUR,
+    ]);
     bindObservers(this);
 
     this._model_observers = [];
+    this._focused = false;
+    this.selectedCell = null;
     this.element = Dom.table(
       /*thead(
         this.colHeaderContainer = Dom.tr()
@@ -55,6 +63,25 @@ class TableController extends Observable {
     this._on_position();
   }
 
+  get focused () { return this._focused; }
+
+  set focused (_) {
+    if (_) {
+      this._focused = true;
+      this.element.classList.add('focused');
+      this.notify(TABLE_CONTROLLER_FOCUS, this);
+    }
+    else {
+      this._focused = false;
+      this.element.classList.remove('focused');
+      this.notify(TABLE_CONTROLLER_BLUR, this);
+
+      if (Fn.all(this.model.getAllCells(), cell => cell.isEmpty())) {
+        this.notify(TABLE_CONTROLLER_EMPTY_BLUR, this);
+      }
+    }
+  }
+
   focus () {
     this.rowContainer.children[0].children[0].controller.focus();
   }
@@ -73,11 +100,14 @@ class TableController extends Observable {
 
   _makeCellController(modelCell, column) {
     const cellController = new CellController(modelCell, column);
-    cellController.observe(NORTH, this._on_focus_north);
-    cellController.observe(SOUTH, this._on_focus_south);
-    cellController.observe(EAST, this._on_focus_east);
-    cellController.observe(WEST, this._on_focus_west);
-    cellController.observe(CELL_EMPTY_BLUR, this._on_cell_empty_blur);
+    cellController.observe(NORTH, this._on_navigate_north);
+    cellController.observe(SOUTH, this._on_navigate_south);
+    cellController.observe(EAST, this._on_navigate_east);
+    cellController.observe(WEST, this._on_navigate_west);
+    cellController.observe(PREVIOUS, this._on_navigate_previous);
+    cellController.observe(NEWLINE, this._on_navigate_newline);
+    cellController.observe(CELL_CONTROLLER_FOCUS, this._on_cell_controller_focus);
+    cellController.observe(CELL_CONTROLLER_BLUR, this._on_cell_controller_blur);
     return cellController;
   }
 
@@ -86,7 +116,7 @@ class TableController extends Observable {
     this.element.setAttribute('style', `left:${position[0]}em;top:${position[1]}em;`)
   }
 
-  _on_focus_north (origin) {
+  _on_navigate_north (origin) {
     const parentElement = origin.element.parentElement;
     const previousRow = parentElement.previousSibling;
     if (previousRow !== null) {
@@ -99,7 +129,7 @@ class TableController extends Observable {
     }
   }
 
-  _on_focus_south (origin) {
+  _on_navigate_south (origin) {
     const parentElement = origin.element.parentElement;
     const elementColumn = Fn.indexOf(parentElement.children, origin.element);
     if (parentElement.nextSibling === null) {
@@ -108,14 +138,22 @@ class TableController extends Observable {
     parentElement.nextSibling.children[elementColumn].controller.focus();
   }
 
-  _on_focus_east (origin) {
+  _on_navigate_newline (origin) {
+    const parentElement = origin.element.parentElement;
+    if (parentElement.nextSibling === null) {
+      this.model.height ++;
+    }
+    parentElement.nextSibling.children[0].controller.focus();
+  }
+
+  _on_navigate_east (origin) {
     if (origin.element.nextSibling === null) {
       this.model.width ++;
     }
     origin.element.nextSibling.controller.focus();
   }
 
-  _on_focus_west (origin) {
+  _on_navigate_west (origin) {
     if (origin.element.previousSibling !== null) {
       origin.element.previousSibling.controller.focus();
 
@@ -126,11 +164,28 @@ class TableController extends Observable {
     }
   }
 
-  _on_cell_empty_blur () {
-    //console.log(document.activeElement);
-    if (Fn.all(this.model.getAllCells(), cell => cell.isEmpty())) {
-      this.notify(TABLE_EMPTY_BLUR, this);
+  _on_navigate_previous (origin) {
+    // Select the last child of the previous row if necessary
+    const parentElement = origin.element.parentElement;
+    if (origin.element.previousSibling === null && parentElement.previousSibling !== null) {
+      const parentPreviousSibling = parentElement.previousSibling
+      parentPreviousSibling.children[parentPreviousSibling.children.length - 1].controller.focus();
     }
+    else {
+      this._on_navigate_west(origin);
+    }
+  }
+
+  _on_cell_controller_focus (cell) {
+    this.selectedCell = cell;
+    this.focused = true;
+  }
+
+  _on_cell_controller_blur (cell) {
+    if (this.selectedCell === cell) {
+      this.selectedCell = null;
+    }
+    //this.blur();
   }
 
   _on_row_splice (change) {

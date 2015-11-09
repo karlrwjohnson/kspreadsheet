@@ -7,6 +7,9 @@ class DocumentController {
   constructor (document) {
     bindObservers(this);
 
+    this.tables = new Set();
+    this._selectedTable = null;
+
     this._document_observers = [];
     this.element = Dom.div({'class': 'document-root flex-column flex-grow'},
       this.toolbarContainer = Dom.nav({'class': 'toolbar'},
@@ -42,13 +45,17 @@ class DocumentController {
   }
 
   _on_addTable(table) {
+    this.tables.add(table);
     const tableController = new TableController(table);
-    tableController.observe(TABLE_EMPTY_BLUR, this._on_table_empty_blur);
+    tableController.observe(TABLE_CONTROLLER_EMPTY_BLUR, this._on_table_controller_empty_blur);
+    tableController.observe(TABLE_CONTROLLER_FOCUS, this._on_table_controller_focus);
+    tableController.observe(TABLE_CONTROLLER_BLUR, this._on_table_controller_blur);
     this.tableContainer.appendChild(tableController.element);
     tableController.focus();
   }
 
   _on_removeTable(table) {
+    this.tables.remove(table);
     this.tableContainer.removeChild(tableController.element);
   }
 
@@ -64,7 +71,22 @@ class DocumentController {
     }
   }
 
-  _on_table_empty_blur(table) {
+  _on_table_controller_empty_blur(table) {
     console.log('Can remove table');
   }
+
+  _on_table_controller_focus(table) {
+    if (this.selectedTable !== null) {
+      this.selectedTable.focused = false;
+    }
+    this._selectedTable = table;
+  }
+
+  _on_table_controller_blur(table) {
+    if (this.selectedTable === table) {
+     this._selectedTable = null;
+    }
+  }
+
+  get selectedTable () { return this._selectedTable; }
 }

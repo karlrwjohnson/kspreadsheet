@@ -6,19 +6,23 @@ const NORTH = Symbol('NORTH');
 const SOUTH = Symbol('SOUTH');
 const EAST = Symbol('EAST');
 const WEST = Symbol('WEST');
+const PREVIOUS = Symbol('PREVIOUS');
+const NEWLINE = Symbol('NEWLINE');
 
-const CELL_EMPTY_BLUR = Symbol('CELL_EMPTY_BLUR');
-const CELL_FOCUS = Symbol('CELL_FOCUS');
+const CELL_CONTROLLER_FOCUS = Symbol('CELL_CONTROLLER_FOCUS');
+const CELL_CONTROLLER_BLUR = Symbol('CELL_CONTROLLER_BLUR');
 
 class CellController extends Observable {
   constructor (cell, column) {
     super([
-      CELL_EMPTY_BLUR,
-      CELL_FOCUS,
+      CELL_CONTROLLER_FOCUS,
+      CELL_CONTROLLER_BLUR,
       NORTH,
       SOUTH,
       EAST,
       WEST,
+      PREVIOUS,
+      NEWLINE,
     ]);
     bindObservers(this);
 
@@ -95,11 +99,11 @@ class CellController extends Observable {
     switch (evt.keyCode) {
       case ENTER_KEY_CODE:
         evt.preventDefault();
-        this.notify(evt.shiftKey ? NORTH : SOUTH, this);
+        this.notify(evt.shiftKey ? NORTH : NEWLINE, this);
         break;
       case TAB_KEY_CODE:
         evt.preventDefault();
-        this.notify(evt.shiftKey ? WEST : EAST, this);
+        this.notify(evt.shiftKey ? PREVIOUS : EAST, this);
         break;
       case UP_KEY_CODE:
         evt.preventDefault();
@@ -126,9 +130,11 @@ class CellController extends Observable {
     }
   }
 
+  _on_focus (evt) {
+    this.notify(CELL_CONTROLLER_FOCUS, this);
+  }
+
   _on_blur (evt) {
-    if (this.inputElement.value === '') {
-      this.notify(CELL_EMPTY_BLUR, this);
-    }
+    this.notify(CELL_CONTROLLER_BLUR, this);
   }
 }
