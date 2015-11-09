@@ -17,6 +17,15 @@ Backlog:
  - As a user, I want to paste tabular data to multiple cells
  - As a user, I want to copy tabular data from multiple cells
  - As a user, I want to minimize the help pane
+ - As a user, I want to print my document
+ - As a user, I want to understand how much of my document fits onto a page
+ - As a user, I want to style cells
+
+ - As a user, I want to use formulas in cells
+ - As a user, I want formulas to support basic math
+ - As a user, I want formulas to support an "if" expression
+ - As a user, I want formulas to reference other cells
+
 
 Mockups:
 
