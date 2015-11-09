@@ -1,27 +1,24 @@
+Completed:
+ - As a user, I want to create a table
+ - As a user, I want to navigate a table using tab, enter, and arrow keys
+ - As a user, I want to append rows and columns by navigating off the right or
+   bottom edges of a table
 
+Backlog:
+ - Bug: Enter key should shoot to the first column of the next row
+ - As a user, I want to delete columns of a table
+ - As a user, I want to delete rows of a table
+ - As a user, I want to delete a table
+ - As a user, I want a message to tell me when I'm using an unsupported browser
+   or a browser with the wrong configuration
+ - As a user, I want more browsers to be supported
+ - As a user, I want to save and load the document
+ - As a user, I want to apply styles to a document
+ - As a user, I want to paste tabular data to multiple cells
+ - As a user, I want to copy tabular data from multiple cells
+ - As a user, I want to minimize the help pane
 
-class Character {
-	name: Field
-	attributes: Map {
-		str: Attribute
-		dex: Attribute
-		con: Attribute
-		int: Attribute
-		wis: Attribute
-		cha: Attribute
-	}
-	saves: Map {
-		fort: Save {
-			attribute: con
-		}
-		refl: Save {
-			attribute: con
-		}
-		fort: Save {
-			attribute: con
-		}
-	}
-}
+Mockups:
 
 Create a table
 	+------+------+------+------+
