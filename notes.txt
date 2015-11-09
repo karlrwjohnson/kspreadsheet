@@ -3,9 +3,9 @@ Completed:
  - As a user, I want to navigate a table using tab, enter, and arrow keys
  - As a user, I want to append rows and columns by navigating off the right or
    bottom edges of a table
+ - Bug: Enter key should shoot to the first column of the next row
 
 Backlog:
- - Bug: Enter key should shoot to the first column of the next row
  - As a user, I want to delete columns of a table
  - As a user, I want to delete rows of a table
  - As a user, I want to delete a table
