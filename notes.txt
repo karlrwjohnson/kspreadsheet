@@ -4,11 +4,11 @@ Completed:
  - As a user, I want to append rows and columns by navigating off the right or
    bottom edges of a table
  - Bug: Enter key should shoot to the first column of the next row
-
-Backlog:
  - As a user, I want to delete columns of a table
  - As a user, I want to delete rows of a table
  - As a user, I want to delete a table
+
+Backlog:
  - As a user, I want a message to tell me when I'm using an unsupported browser
    or a browser with the wrong configuration
  - As a user, I want more browsers to be supported
@@ -20,6 +20,7 @@ Backlog:
  - As a user, I want to print my document
  - As a user, I want to understand how much of my document fits onto a page
  - As a user, I want to style cells
+ - As a user, I want icons in buttons
 
  - As a user, I want to use formulas in cells
  - As a user, I want formulas to support basic math

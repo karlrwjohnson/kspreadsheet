@@ -5,17 +5,28 @@
   <link href='https://fonts.googleapis.com/css?family=Roboto+Slab' rel='stylesheet' type='text/css'>
 </head>
 <body>
-  <div id='instructions'>
-    <h1>How to use</h1>
-    <ul>
-      <li>Click in a box to type</li>
-      <li>Drag the right edge of a box to grow or shrink it</li>
-      <li>Move a table by hovering over it and grabbing the textured border</li>
-      <li>Navigate a table using Tab and Enter to move right and down, and
-        Shift+Tab and Shift+Enter to move left and up.</li>
-      <li>Add columns and rows to a table by tabbing or entering past the
-        edge of it</li>
-    </ul>
+  <div id='compatibility-warning'>
+    <h1>This application requires experimental Javascript features</h1>
+
+    <p>This app was only tested to work in Google Chrome with the newest
+       features enabled. To use it, please
+       <a href='chrome://flags/#enable-javascript-harmony'>click here</a>
+       and enable the setting &quot;Enable Experimental Javascript&quot; and reload
+    </p>
+  </div>
+  <div style='display:none;'>
+    <div id='instructions'>
+      <h1>How to use</h1>
+      <ul>
+        <li>Click in a box to type</li>
+        <li>Drag the right edge of a box to grow or shrink it</li>
+        <li>Move a table by hovering over it and grabbing the textured border</li>
+        <li>Navigate a table using Tab and Enter to move right and down, and
+          Shift+Tab and Shift+Enter to move left and up.</li>
+        <li>Add columns and rows to a table by tabbing or entering past the
+          edge of it</li>
+      </ul>
+    </div>
   </div>
 </body>
 
@@ -57,6 +68,10 @@
       )
     )
   );
+
+  // If there was going to be an error, it would have happened by now.
+  // Remove the warning.
+  document.getElementById('compatibility-warning').style.display = 'none';
 
   function demo () {
     const table = new Table([5, 5]);
