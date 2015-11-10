@@ -60,7 +60,7 @@ aside {
   box-shadow: 0.1em 0.1em 1em -0.2em rgba(0,0,0,0.5);
 }
 /* Drag border */
-.document table:hover:before {
+.document table.focused:before {
   content: '';
   display: block;
   position: absolute;

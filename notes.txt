@@ -26,6 +26,9 @@ Backlog:
  - As a user, I want formulas to support an "if" expression
  - As a user, I want formulas to reference other cells
 
+ - As a developer, I want event types to be attached to the classes they relate to
+ - As a developer, I want unit tests on all the Controller classes
+ - As a developer, I want to know how much code coverage I have
 
 Mockups:
 

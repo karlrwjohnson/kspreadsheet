@@ -7,8 +7,8 @@ class DocumentController {
   constructor (document) {
     bindObservers(this);
 
-    this.tables = new Set();
-    this._selectedTable = null;
+    this.tableControllers = new Map();
+    this._focusedTable = null;
 
     this._document_observers = [];
     this.element = Dom.div({'class': 'document-root flex-column flex-grow'},
@@ -22,8 +22,18 @@ class DocumentController {
       this.tableContainer = Dom.div({'class': 'document flex-grow'})
     );
 
-    this.tableContainer.addEventListener('dblclick', this._on_click);
+    this.tableContainer.addEventListener('click', this._on_click);
+    this.tableContainer.addEventListener('dblclick', this._on_dbl_click);
     this.deleteTableButton.addEventListener('click', () => {})
+
+    this.deleteTableButton.addEventListener('click', () => {
+      this.document.removeTable(this.focusedTable.model);
+      this.focusedTable = null;
+    });
+    this.insertColumnButton.addEventListener('click', () => this.focusedTable.insertColumn());
+    this.deleteColumnButton.addEventListener('click', () => this.focusedTable.deleteColumn());
+    this.insertRowButton.addEventListener('click', () => this.focusedTable.insertRow());
+    this.deleteRowButton.addEventListener('click', () => this.focusedTable.deleteRow());
 
     this.document = document;
   }
@@ -45,8 +55,8 @@ class DocumentController {
   }
 
   _on_addTable(table) {
-    this.tables.add(table);
     const tableController = new TableController(table);
+    this.tableControllers.set(table, tableController);
     tableController.observe(TABLE_CONTROLLER_EMPTY_BLUR, this._on_table_controller_empty_blur);
     tableController.observe(TABLE_CONTROLLER_FOCUS, this._on_table_controller_focus);
     tableController.observe(TABLE_CONTROLLER_BLUR, this._on_table_controller_blur);
@@ -55,11 +65,22 @@ class DocumentController {
   }
 
   _on_removeTable(table) {
-    this.tables.remove(table);
+    const tableController = this.tableControllers.get(table);
+    if (this.focusedTable === tableController) {
+      this.focusedTable = null;
+    }
     this.tableContainer.removeChild(tableController.element);
+    this.tableControllers.delete(table);
   }
 
   _on_click(evt) {
+    if (evt.target === this.tableContainer) {
+      console.log(evt);
+      this.focusedTable = null;
+    }
+  }
+
+  _on_dbl_click(evt) {
     if (evt.target === this.tableContainer) {
       console.log(evt);
       if (evt.buttons === CREATE_TABLE_BUTTON) {
@@ -76,17 +97,42 @@ class DocumentController {
   }
 
   _on_table_controller_focus(table) {
-    if (this.selectedTable !== null) {
-      this.selectedTable.focused = false;
-    }
-    this._selectedTable = table;
+    this.focusedTable = table;
   }
 
   _on_table_controller_blur(table) {
-    if (this.selectedTable === table) {
-     this._selectedTable = null;
+    if (this.focusedTable === table) {
+      this.focusedTable = null;
     }
   }
 
-  get selectedTable () { return this._selectedTable; }
+  get focusedTable () { return this._focusedTable; }
+
+  set focusedTable (table) {
+    if (this.focusedTable !== table) {
+      if (this.focusedTable) {
+        if (this.focusedTable.focused) {
+          this.focusedTable.focused = false;
+        }
+        this._focusedTable = null;
+      }
+
+      if (table) {
+        this._focusedTable = table;
+        if (!this.focusedTable.focused) {
+          this.focusedTable.focused = true;
+        }
+      }
+
+      for (let button of [
+          this.deleteTableButton,
+          this.insertColumnButton,
+          this.deleteColumnButton,
+          this.insertRowButton,
+          this.deleteRowButton,
+      ]) {
+        button.disabled = !table;
+      }
+    }
+  }
 }
