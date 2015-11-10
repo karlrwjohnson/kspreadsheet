@@ -63,30 +63,6 @@ class TableController extends Observable {
     this._on_position();
   }
 
-  get focused () { return this._focused; }
-
-  set focused (_) {
-    const previousState = this.focused;
-    if (_) {
-      this._focused = true;
-      this.element.classList.add('focused');
-      if (!previousState) {
-        this.notify(TABLE_CONTROLLER_FOCUS, this);
-      }
-    }
-    else {
-      this._focused = false;
-      this.element.classList.remove('focused');
-      if (previousState) {
-        this.notify(TABLE_CONTROLLER_BLUR, this);
-      }
-    }
-  }
-
-  focus () {
-    this.rowContainer.children[0].children[0].controller.focus();
-  }
-
   _makeRowView(modelRow) {
     const rowElement = Dom.tr();
     for (let cell_column of zip(modelRow, this.model.columns)) {
@@ -117,55 +93,91 @@ class TableController extends Observable {
     this.element.setAttribute('style', `left:${position[0]}em;top:${position[1]}em;`)
   }
 
+  getRelativeCellController (cellController, direction) {
+    const parentElement = cellController.element.parentElement;
+    const elementColumn = getIndexOfElementInParent(cellController.element);
+
+    switch(direction) {
+      case NORTH:
+        return (parentElement.previousSibling) ?
+            parentElement.previousSibling.children[elementColumn].controller :
+            null;
+      case SOUTH:
+        return (parentElement.nextSibling) ?
+            parentElement.nextSibling.children[elementColumn].controller :
+            null;
+      case WEST:
+        return (cellController.element.previousSibling) ?
+            cellController.element.previousSibling.controller :
+            null;
+      case EAST:
+        return (cellController.element.nextSibling) ?
+            cellController.element.nextSibling.controller :
+            null;
+      default:
+        throw new IllegalArgumentException('Unknown direction ' + direction);
+    }
+  }
+
   _on_navigate_north (origin) {
     const parentElement = origin.element.parentElement;
-    const previousRow = parentElement.previousSibling;
-    if (previousRow !== null) {
-      const elementColumn = Fn.indexOf(parentElement.children, origin.element);
+    const targetController = this.getRelativeCellController(origin, NORTH);
+
+    if (targetController) {
+      targetController.focus();
+
+      // Prune empty rows at the bottom of the table
       if (parentElement.nextSibling === null &&
           Fn.all(this.model.getCellsInRow(this.model.height - 1), cell => cell.isEmpty())) {
         this.model.height --;
       }
-      previousRow.children[elementColumn].controller.focus();
     }
   }
 
   _on_navigate_south (origin) {
     const parentElement = origin.element.parentElement;
-    const elementColumn = Fn.indexOf(parentElement.children, origin.element);
+
+    // Expand the table if necessary
     if (parentElement.nextSibling === null) {
       this.model.height ++;
     }
-    parentElement.nextSibling.children[elementColumn].controller.focus();
+
+    this.getRelativeCellController(origin, SOUTH).focus()
   }
 
   _on_navigate_newline (origin) {
     const parentElement = origin.element.parentElement;
+
+    // Expand the table if necessary
     if (parentElement.nextSibling === null) {
       this.model.height ++;
     }
-    parentElement.nextSibling.children[0].controller.focus();
-  }
 
-  _on_navigate_east (origin) {
-    if (origin.element.nextSibling === null) {
-      // Make new column width match up with the previous one
-      const width = this.model.columns[this.model.width - 1].width;
-      this.model.width ++;
-      this.model.columns[this.model.width - 1].width = width;
-    }
-    origin.element.nextSibling.controller.focus();
+    parentElement.nextSibling.children[0].controller.focus();
   }
 
   _on_navigate_west (origin) {
     if (origin.element.previousSibling !== null) {
-      origin.element.previousSibling.controller.focus();
+      this.getRelativeCellController(origin, WEST).focus();
 
+      // Prune empty columns at the right edge of the table
       if (origin.element.nextSibling === null &&
           Fn.all(this.model.getCellsInColumn(this.model.width - 1), cell => cell.isEmpty())) {
         this.model.width --;
       }
     }
+  }
+
+  _on_navigate_east (origin) {
+    if (origin.element.nextSibling === null) {
+      this.model.width ++;
+
+      // Make new column width match up with the previous one
+      this.model.columns[this.model.width - 2].width =
+          this.model.columns[this.model.width - 1].width;
+    }
+
+    this.getRelativeCellController(origin, EAST).focus();
   }
 
   _on_navigate_previous (origin) {
@@ -233,14 +245,34 @@ class TableController extends Observable {
     }
   }
 
+  get focused () { return this._focused; }
+
+  set focused (_) {
+    if (Boolean(this.focused) !== Boolean(_)) {
+      if (_) {
+        this._focused = true;
+        this.element.classList.add('focused');
+        this.notify(TABLE_CONTROLLER_FOCUS, this);
+      }
+      else {
+        this._focused = false;
+        this.element.classList.remove('focused');
+        this.focusedCellController = false;
+        this.notify(TABLE_CONTROLLER_BLUR, this);
+      }
+    }
+  }
+
+  focus () {
+    this.rowContainer.children[0].children[0].controller.focus();
+  }
+
   get focusedCellController () { return this._focusedCellController; }
 
   set focusedCellController (cellController) {
     if (this.focusedCellController !== cellController) {
       if (this.focusedCellController) {
-        if (this.focusedCellController.focused) {
-          this.focusedCellController.focused = false;
-        }
+        this.focusedCellController.focused = false;
         this._focusedCellController = null;
       }
 
@@ -255,47 +287,78 @@ class TableController extends Observable {
     }
   }
 
-
-
+  /** Insert a row above the currently-focused cell **/
   insertRow () {
     if (this.focusedCellController) {
       const previouslyFocused = this.focusedCellController;
       const rowElement = this.focusedCellController.element.parentElement;
-      const rowIndex = Fn.indexOf(rowElement.parentElement.children, rowElement);
+      const rowIndex = getIndexOfElementInParent(rowElement);
+
       this.model.spliceRows(rowIndex, 1, 0);
-      previouslyFocused.focus();
+
+      // Move the focus to the new row
+      this.getRelativeCellController(previouslyFocused, NORTH).focus();
+    }
+    else {
+      throw Error('No cell is focused');
     }
   }
 
+  /** Delete the row of the currently-focused cell **/
   deleteRow () {
     if (this.focusedCellController) {
-      const previouslyFocused = this.focusedCellController;
+      const focusNext =
+          this.getRelativeCellController(this.focusedCellController, SOUTH) ||
+          this.getRelativeCellController(this.focusedCellController, NORTH);
+
       const rowElement = this.focusedCellController.element.parentElement;
-      const rowIndex = Fn.indexOf(rowElement.parentElement.children, rowElement);
+      const rowIndex = getIndexOfElementInParent(rowElement);
+
       this.model.spliceRows(rowIndex, 0, 1);
-      previouslyFocused.focus();
+
+      focusNext.focus()
+    }
+    else {
+      throw Error('No cell is focused');
     }
   }
 
+  /** Insert a column to the left of the currently-focused cell **/
   insertColumn () {
     if (this.focusedCellController) {
       const previouslyFocused = this.focusedCellController;
       const cellElement = this.focusedCellController.element;
-      const columnIndex = Fn.indexOf(cellElement.parentElement.children, cellElement);
-      const width = this.model.columns[columnIndex].width;
+      const columnIndex = getIndexOfElementInParent(cellElement);
+
       this.model.spliceColumns(columnIndex, 1, 0);
-      this.model.columns[columnIndex].width = width;
-      previouslyFocused.focus();
+
+      // Make the new column the same width as the old one
+      this.model.columns[columnIndex].width =
+          this.model.columns[columnIndex + 1].width;
+
+      // Move the focus to the new column
+      this.getRelativeCellController(previouslyFocused, WEST).focus();
+    }
+    else {
+      throw Error('No cell is focused');
     }
   }
 
+  /** Delete the column of the currently-focused cell **/
   deleteColumn () {
     if (this.focusedCellController) {
-      const previouslyFocused = this.focusedCellController;
+      const focusNext =
+          this.getRelativeCellController(this.focusedCellController, EAST) ||
+          this.getRelativeCellController(this.focusedCellController, WEST);
+
       const cellElement = this.focusedCellController.element;
-      const columnIndex = Fn.indexOf(cellElement.parentElement.children, cellElement);
+      const columnIndex = getIndexOfElementInParent(cellElement);
       this.model.spliceColumns(columnIndex, 0, 1);
-      previouslyFocused.focus();
+
+      focusNext.focus()
+    }
+    else {
+      throw Error('No cell is focused');
     }
   }
 }

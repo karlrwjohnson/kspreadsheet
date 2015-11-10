@@ -75,7 +75,6 @@ class DocumentController {
 
   _on_click(evt) {
     if (evt.target === this.tableContainer) {
-      console.log(evt);
       this.focusedTable = null;
     }
   }
@@ -111,17 +110,13 @@ class DocumentController {
   set focusedTable (table) {
     if (this.focusedTable !== table) {
       if (this.focusedTable) {
-        if (this.focusedTable.focused) {
-          this.focusedTable.focused = false;
-        }
+        this.focusedTable.focused = false;
         this._focusedTable = null;
       }
 
       if (table) {
         this._focusedTable = table;
-        if (!this.focusedTable.focused) {
-          this.focusedTable.focused = true;
-        }
+        this.focusedTable.focused = true;
       }
 
       for (let button of [

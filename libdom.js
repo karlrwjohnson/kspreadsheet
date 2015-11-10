@@ -74,3 +74,7 @@ function insertChildAtIndex (parent, index, child) {
 function removeChildAtIndex (parent, index) {
   return parent.removeChild(parent.children[index]);
 }
+
+function getIndexOfElementInParent(element) {
+  return Fn.indexOf(element.parentElement.children, element);
+}

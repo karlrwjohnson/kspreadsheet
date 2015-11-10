@@ -199,3 +199,9 @@ class OutOfBoundsException extends Error {
     super(msg);
   }
 }
+
+class IllegalArgumentException extends Error {
+  constructor(msg) {
+    super(msg);
+  }
+}
