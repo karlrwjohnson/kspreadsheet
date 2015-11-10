@@ -8,6 +8,12 @@ class Column extends Observable {
     this._width = width;
   }
 
+  toJSON () {
+    return {
+      width: this.width
+    }
+  }
+
   get width () { return this._width; }
 
   set width (_) {
@@ -32,6 +38,12 @@ describe('Column', ()=>{
 
   it('should initialize its width on construction', ()=>{
     expect(column.width).toBe(defaultWidth);
+  });
+
+  it('should serialize', ()=>{
+    expect(column.toJSON()).toEqual({
+      width: defaultWidth
+    });
   });
 
   it('should get and set its width', ()=>{

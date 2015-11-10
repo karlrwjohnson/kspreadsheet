@@ -32,6 +32,14 @@ class Table extends Observable {
     this.position = position;
   }
 
+  toJSON () {
+    return {
+      position: this.position,
+      columns: this.columns.map(column => column.toJSON()),
+      data: this.data.map(row => row.map(cell => cell.toJSON()))
+    }
+  }
+
   get position () { return this._position.slice(); }
 
   set position (_) {
@@ -185,6 +193,20 @@ describe('Table', ()=>{
 
   it('should initialize its position at construction', ()=>{
     expect(table.position).toEqual([3,5]);
+  });
+
+  it('should serialize', ()=>{
+    expect(table.toJSON()).toEqual({
+      position: [3, 5],
+      columns: [
+        table.columns[0].toJSON()
+      ],
+      data: [
+        [
+          table.data[0][0].toJSON(),
+        ]
+      ]
+    });
   });
 
   it('should get and set its position', ()=>{

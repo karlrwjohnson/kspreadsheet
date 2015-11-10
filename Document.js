@@ -25,4 +25,27 @@ class Document extends Observable {
     this._tables.delete(_);
     this.notify(DOCUMENT_REMOVE_TABLE, _);
   }
+
+  toJSON () {
+    return {
+      tables: Array.from(this._tables, table => table.toJSON())
+    }
+  }
 }
+
+describe('Document', ()=>{
+
+  it('should construct', ()=>{
+    new Document([]);
+  });
+
+  it('should serialize', ()=>{
+    const aTable = new Table([1,2]);
+    const doc = new Document([aTable]);
+    expect(doc.toJSON()).toEqual({
+      tables: [
+        aTable.toJSON()
+      ]
+    });
+  });
+});

@@ -8,6 +8,12 @@ class Cell extends Observable {
     this._value = value;
   }
 
+  toJSON () {
+    return {
+      value: this.value
+    }
+  }
+
   get value () { return this._value; }
 
   set value (_) {
@@ -29,6 +35,12 @@ describe('Cell', ()=>{
 
   it('should initialize its value on construction', ()=>{
     expect(cell.value).toBe('asdf');
+  });
+
+  it('should serialize', ()=>{
+    expect(cell.toJSON()).toEqual({
+      value: 'asdf'
+    });
   });
 
   it('should get and set its value', ()=>{
