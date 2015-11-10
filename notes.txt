@@ -7,15 +7,17 @@ Completed:
  - As a user, I want to delete columns of a table
  - As a user, I want to delete rows of a table
  - As a user, I want to delete a table
-
-Backlog:
  - As a user, I want a message to tell me when I'm using an unsupported browser
    or a browser with the wrong configuration
+
+Backlog:
+ - As a user, I want to paste tabular data to multiple cells
+ - As a user, I want to copy tabular data from multiple cells
+ - As a user, I want to delete a row by selecting it
+ - As a user, I want to delete a column by selecting it
  - As a user, I want more browsers to be supported
  - As a user, I want to save and load the document
  - As a user, I want to apply styles to a document
- - As a user, I want to paste tabular data to multiple cells
- - As a user, I want to copy tabular data from multiple cells
  - As a user, I want to minimize the help pane
  - As a user, I want to print my document
  - As a user, I want to understand how much of my document fits onto a page

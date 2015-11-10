@@ -14,10 +14,10 @@ class DocumentController {
     this.element = Dom.div({'class': 'document-root flex-column flex-grow'},
       this.toolbarContainer = Dom.nav({'class': 'toolbar'},
         this.deleteTableButton = Dom.button('Delete Table'),
-        this.insertColumnButton = Dom.button({title: 'Insert Column'}, 'Insert Column'),
-        this.deleteColumnButton = Dom.button({title: 'Delete Column'}, 'Delete Column'),
-        this.insertRowButton = Dom.button({title: 'Insert Row'}, 'Insert Row'),
-        this.deleteRowButton = Dom.button({title: 'Delete Row'}, 'Delete Row')
+        this.insertColumnButton = Dom.button({title: 'Insert Column'}, Dom.img({href: 'img/insertColumn.svg'}), 'Insert Column'),
+        this.deleteColumnButton = Dom.button({title: 'Delete Column'}, Dom.img({href: 'img/deleteColumn.svg'}), 'Delete Column'),
+        this.insertRowButton = Dom.button({title: 'Insert Row'}, Dom.img({href: 'img/insertRow.svg'}), 'Insert Row'),
+        this.deleteRowButton = Dom.button({title: 'Delete Row'}, Dom.img({href: 'img/deleteRow.svg'}), 'Delete Row')
       ),
       this.tableContainer = Dom.div({'class': 'document flex-grow'})
     );

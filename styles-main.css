@@ -59,27 +59,29 @@ aside {
 
   box-shadow: 0.1em 0.1em 1em -0.2em rgba(0,0,0,0.5);
 }
-/* Drag border */
-.document table.focused:before {
-  content: '';
-  display: block;
-  position: absolute;
-  top:    -8px; left:  -8px;
-  bottom: -8px; right: -8px;
-  height: auto;  width: auto;
-  background: url('data:image/svg+xml;utf8,\
-    <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg">\
-      <line x1="0"  y2="0"  x2="2"  y1="2"  style="stroke:rgba(0,0,0,0.4);stroke-width:1px" />\
-      <line x1="0"  y2="0"  x2="6"  y1="6"  style="stroke:rgba(0,0,0,0.4);stroke-width:1px" />\
-      <line x1="0"  y2="0"  x2="10" y1="10" style="stroke:rgba(0,0,0,0.4);stroke-width:1px" />\
-      <line x1="0"  y2="0"  x2="14" y1="14" style="stroke:rgba(0,0,0,0.4);stroke-width:1px" />\
-      <line x1="16" y2="16" x2="2"  y1="2"  style="stroke:rgba(0,0,0,0.4);stroke-width:1px" />\
-      <line x1="16" y2="16" x2="6"  y1="6"  style="stroke:rgba(0,0,0,0.4);stroke-width:1px" />\
-      <line x1="16" y2="16" x2="10" y1="10" style="stroke:rgba(0,0,0,0.4);stroke-width:1px" />\
-      <line x1="16" y2="16" x2="14" y1="14" style="stroke:rgba(0,0,0,0.4);stroke-width:1px" />\
-    </svg>\
-  ');
-  cursor: move;
+@media screen {
+  /* Drag border */
+  .document table.focused:before {
+    content: '';
+    display: block;
+    position: absolute;
+    top:    -8px; left:  -8px;
+    bottom: -8px; right: -8px;
+    height: auto;  width: auto;
+    background: url('data:image/svg+xml;utf8,\
+      <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg">\
+        <line x1="0"  y2="0"  x2="2"  y1="2"  style="stroke:rgba(0,0,0,0.4);stroke-width:1px" />\
+        <line x1="0"  y2="0"  x2="6"  y1="6"  style="stroke:rgba(0,0,0,0.4);stroke-width:1px" />\
+        <line x1="0"  y2="0"  x2="10" y1="10" style="stroke:rgba(0,0,0,0.4);stroke-width:1px" />\
+        <line x1="0"  y2="0"  x2="14" y1="14" style="stroke:rgba(0,0,0,0.4);stroke-width:1px" />\
+        <line x1="16" y2="16" x2="2"  y1="2"  style="stroke:rgba(0,0,0,0.4);stroke-width:1px" />\
+        <line x1="16" y2="16" x2="6"  y1="6"  style="stroke:rgba(0,0,0,0.4);stroke-width:1px" />\
+        <line x1="16" y2="16" x2="10" y1="10" style="stroke:rgba(0,0,0,0.4);stroke-width:1px" />\
+        <line x1="16" y2="16" x2="14" y1="14" style="stroke:rgba(0,0,0,0.4);stroke-width:1px" />\
+      </svg>\
+    ');
+    cursor: move;
+  }
 }
 .document tbody {
   border-spacing: none;
@@ -169,9 +171,11 @@ aside {
   line-height: 2em;
   position:absolute;
 }
-.document input:focus {
-  outline: none;
-  box-shadow: 0.05em 0.05em 0.4em 0.15em rgba(0, 85, 255, 0.4) inset;
+@media screen {
+  .document input:focus {
+    outline: none;
+    box-shadow: 0.05em 0.05em 0.4em 0.15em rgba(0, 85, 255, 0.4) inset;
+  }
 }
 .document tr:first-child td:first-child,
 .document tr:first-child td:first-child input {
@@ -199,3 +203,14 @@ aside {
 .td { display: table-cell; }
 .col { display: table-column; }
 .tr { display: table-row; }
+
+@media print {
+  header, aside, .toolbar {
+    display: none;
+  }
+
+  .document {
+    overflow:inherit;
+    width:100%;
+  }
+}
