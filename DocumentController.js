@@ -90,7 +90,9 @@ class DocumentController {
         const emSize = getEmSize(this.tableContainer);
         const em_x = Math.round(evt.offsetX / emSize);
         const em_y = Math.round(evt.offsetY / emSize);
-        this.document.addTable(new Table([em_x, em_y]))
+        const newTable = new Table();
+        newTable.position = [em_x, em_y];
+        this.document.addTable(newTable);
       }
     }
   }
