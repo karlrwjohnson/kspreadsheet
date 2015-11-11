@@ -3,9 +3,14 @@
 const CELL_VALUE = Symbol('CELL_VALUE');
 
 class Cell extends Observable {
-  constructor (value) {
+  constructor (json) {
     super([CELL_VALUE]);
-    this._value = value;
+
+    if (json) {
+      this.value = json.value;
+    } else {
+      this.value = '';
+    }
   }
 
   toJSON () {
@@ -30,11 +35,15 @@ describe('Cell', ()=>{
   let cell;
 
   beforeEach(()=>{
-    cell = new Cell('asdf');
+    cell = new Cell({value: 'asdf'});
   });
 
-  it('should initialize its value on construction', ()=>{
+  it('should initialize from serialized data', ()=>{
     expect(cell.value).toBe('asdf');
+  });
+
+  it('should initialize with a default value', ()=>{
+    expect((new Cell()).value).toBe('');
   });
 
   it('should serialize', ()=>{

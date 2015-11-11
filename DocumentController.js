@@ -52,6 +52,10 @@ class DocumentController {
 
     this._document_observers.push(this.document.observe(DOCUMENT_ADD_TABLE, this._on_addTable));
     this._document_observers.push(this.document.observe(DOCUMENT_REMOVE_TABLE, this._on_removeTable));
+
+    for (let table of this.document.tables) {
+      this._on_addTable(table);
+    }
   }
 
   _on_addTable(table) {

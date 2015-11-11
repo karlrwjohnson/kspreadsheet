@@ -73,32 +73,38 @@
     )
   );
 
+  const sampleDoc = {
+    tables: [
+      {
+        position: [5, 5],
+        columns: [
+          { width: 6 },
+          { width: 4 },
+          { width: 4 },
+          { width: 4 },
+          { width: 4 },
+          { width: 4 },
+        ],
+        data: [
+          [{value: 'Attributes'}, {value: 'Base'}, {value: 'Racial'},
+           {value: 'Misc'}, {value: 'Total'}, {value: 'Mod' }],
+          [{value: 'STR'}, {value: 13}, {value: 0}, {value: 0}, {value: 15}, {value: 1}],
+          [{value: 'DEX'}, {value: 17}, {value: 0}, {value: 1}, {value: 18}, {value: 4}],
+          [{value: 'CON'}, {value: 13}, {value: 0}, {value: 1}, {value: 14}, {value: 2}],
+          [{value: 'INT'}, {value: 18}, {value: 2}, {value: 0}, {value: 20}, {value: 5}],
+          [{value: 'WIS'}, {value: 13}, {value: 0}, {value: 0}, {value: 13}, {value: 1}],
+          [{value: 'CHA'}, {value: 10}, {value: 0}, {value: 0}, {value: 10}, {value: 0}],
+        ]
+      }
+    ]
+  };
+
   // If there was going to be an error, it would have happened by now.
   // Remove the warning.
   document.getElementById('compatibility-warning').style.display = 'none';
 
   function demo () {
-    const table = new Table([5, 5]);
-    doc.addTable(table);
-
-    table.height = 7;
-    table.width = 6;
-    [
-      ['Attributes', 'Base', 'Racial', 'Misc', 'Total', 'Mod'],
-      ['STR', 13, 0, 0, 15, 1],
-      ['DEX', 17, 0, 1, 18, 4],
-      ['CON', 13, 0, 1, 14, 2],
-      ['INT', 18, 2, 0, 20, 5],
-      ['WIS', 13, 0, 0, 13, 1],
-      ['CHA', 10, 0, 0, 10, 0 ],
-    ].forEach((row, r) => row.forEach((value, c) => table.getCell(r, c).value = value));
-
-    table.columns[0].width = 6;
-    table.columns[1].width = 4;
-    table.columns[2].width = 4;
-    table.columns[3].width = 4;
-    table.columns[4].width = 4;
-    table.columns[5].width = 4;
+    documentController.document = new Document(sampleDoc);
   }
 
   demo();

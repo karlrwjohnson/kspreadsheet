@@ -20,16 +20,27 @@ const TABLE_SPLICE_ROWS = Symbol('TABLE_SPLICE_ROWS');
 const TABLE_SPLICE_COLUMNS = Symbol('TABLE_SPLICE_COLUMNS');
 
 class Table extends Observable {
-  constructor (position) {
+  constructor (json) {
     super([
       TABLE_POSITION,
       TABLE_SPLICE_ROWS,
       TABLE_SPLICE_COLUMNS,
     ]);
-    this.data = [[new Cell('')]];
-    this.columns = arrayFromFn(this.width, () => new Column(10));
 
-    this.position = position;
+    if (json) {
+      const dimensions = getDimensions(json.data);
+      if (dimensions[1] !== json.columns.length) {
+        throw Error(`Number of columns (${json.columns.length}) does not ` +
+            `match the width of the data (${dimensions[1]})`);
+      }
+      this.position = json.position;
+      this.data = json.data.map(row => row.map(cell => new Cell(cell)));
+      this.columns = json.columns.map(column => new Column(column));
+    } else {
+      this.position = [0, 0]
+      this.data = [[new Cell('')]];
+      this.columns = arrayFromFn(this.width, () => new Column());
+    }
   }
 
   toJSON () {
@@ -137,7 +148,7 @@ class Table extends Observable {
     }
     else {
       const newRows = arrayFromFn(insert, () =>
-        arrayFromFn(this.width, () => new Cell(''))
+        arrayFromFn(this.width, () => new Cell())
       );
 
       // The splice() function is stupid because it takes the new elements as
@@ -165,11 +176,11 @@ class Table extends Observable {
       throw new OutOfBoundsException(`No columns would be left after the splice`);
     }
     else {
-      const newColumns = arrayFromFn(insert, () => new Column(10));
+      const newColumns = arrayFromFn(insert, () => new Column());
       [].splice.apply(this.columns, [index, remove].concat(newColumns));
 
       for (let row of this.data) {
-        const newCells = arrayFromFn(insert, () => new Cell(''));
+        const newCells = arrayFromFn(insert, () => new Cell());
         [].splice.apply(row, [index, remove].concat(newCells));
       }
 
@@ -181,6 +192,10 @@ class Table extends Observable {
 }
 
 describe('Table', ()=>{
+  const defaultPosition = [3, 5];
+  const defaultColumns = [{width: 4}, {width: 8}];
+  const defaultData = [[{value: 'a'}, {value: 'b'}],
+                       [{value: 'c'}, {value: 'c'}]];
   let table;
 
   function getValuesAsArray(table) {
@@ -188,23 +203,46 @@ describe('Table', ()=>{
   }
 
   beforeEach(() => {
-    table = new Table([3,5]);
+    table = new Table({
+      position: defaultPosition,
+      columns: defaultColumns,
+      data: defaultData,
+    });
   })
 
-  it('should initialize its position at construction', ()=>{
-    expect(table.position).toEqual([3,5]);
+  it('should initialize from serialized data', ()=>{
+    expect(table.toJSON()).toEqual({
+      position: defaultPosition,
+      columns: defaultColumns,
+      data: defaultData,
+    });
+  });
+
+  it('should initialize with default values', ()=>{
+    const table = new Table();
+    expect(table.toJSON()).toEqual({
+      position: [0, 0],
+      columns: [{width: 10}],
+      data: [[{value: ''}]],
+    });
   });
 
   it('should serialize', ()=>{
     expect(table.toJSON()).toEqual({
       position: [3, 5],
       columns: [
-        table.columns[0].toJSON()
+        table.columns[0].toJSON(),
+        table.columns[1].toJSON(),
       ],
       data: [
         [
           table.data[0][0].toJSON(),
-        ]
+          table.data[0][1].toJSON(),
+        ],
+        [
+          table.data[1][0].toJSON(),
+          table.data[1][1].toJSON(),
+        ],
       ]
     });
   });

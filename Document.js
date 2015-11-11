@@ -4,15 +4,18 @@ const DOCUMENT_ADD_TABLE = Symbol('DOCUMENT_ADD_TABLE');
 const DOCUMENT_REMOVE_TABLE = Symbol('DOCUMENT_REMOVE_TABLE');
 
 class Document extends Observable {
-  constructor (tables) {
+  constructor (json) {
     super([
       DOCUMENT_ADD_TABLE,
       DOCUMENT_REMOVE_TABLE,
     ]);
+
     this._tables = new Set();
 
-    for (let table of (tables || [])) {
-      this.addTable(table);
+    if (json) {
+        for (let table of json.tables) {
+            this.addTable(new Table(table));
+        }
     }
   }
 
@@ -26,6 +29,10 @@ class Document extends Observable {
     this.notify(DOCUMENT_REMOVE_TABLE, _);
   }
 
+  get tables () {
+    return this._tables[Symbol.iterator]();
+  }
+
   toJSON () {
     return {
       tables: Array.from(this._tables, table => table.toJSON())
@@ -35,13 +42,31 @@ class Document extends Observable {
 
 describe('Document', ()=>{
 
-  it('should construct', ()=>{
+  it('should initialize with default data', ()=>{
     new Document([]);
   });
 
+  it('should initalize from serialized data', ()=>{
+    const defaultTables = [
+      {
+        position: [0, 0],
+        columns: [{width: 10}],
+        data: [[{value: 'asdf'}]],
+      },
+    ]
+    const docJson = {
+      tables: defaultTables
+    }
+    const doc = new Document(docJson);
+    expect(doc.toJSON()).toEqual({
+      tables: defaultTables,
+    });
+  });
+
   it('should serialize', ()=>{
-    const aTable = new Table([1,2]);
-    const doc = new Document([aTable]);
+    const aTable = new Table();
+    const doc = new Document();
+    doc.addTable(aTable);
     expect(doc.toJSON()).toEqual({
       tables: [
         aTable.toJSON()

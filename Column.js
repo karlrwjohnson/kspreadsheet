@@ -3,41 +3,57 @@
 const COLUMN_WIDTH = Symbol('COLUMN_WIDTH');
 
 class Column extends Observable {
-  constructor (width) {
+  constructor (json) {
     super([COLUMN_WIDTH]);
-    this._width = width;
+
+    if (json) {
+      this.width = json.width;
+    }
+    else {
+      this._width = 10;
+    }
   }
 
   toJSON () {
     return {
-      width: this.width
-    }
+      width: this.width,
+    };
   }
 
   get width () { return this._width; }
 
   set width (_) {
-    if (_ > 0) {
-      this._width = _;
-      this.notify(COLUMN_WIDTH);
+    if (_ <= 0) {
+      throw new OutOfBoundsException('Negative width');
+    }
+    else if (typeof _ !== 'number') {
+      throw new TypeError('Width must be a number');
     }
     else {
-      throw new OutOfBoundsException();
+      this._width = _;
+      this.notify(COLUMN_WIDTH);
     }
   }
 }
 
 describe('Column', ()=>{
-  const defaultWidth = 10;
+  const defaultWidth = 16;
 
   let column;
 
   beforeEach(()=>{
-    column = new Column(defaultWidth);
+    column = new Column({width: defaultWidth});
   });
 
-  it('should initialize its width on construction', ()=>{
+  it('should initialize from serialized data', ()=>{
     expect(column.width).toBe(defaultWidth);
+  });
+
+  it('should initialize with default values', ()=>{
+    expect((new Column()).width).toBe(10);
+
+    // unit test default should be different from actual default for this test
+    expect(defaultWidth).not.toBe(10);
   });
 
   it('should serialize', ()=>{
