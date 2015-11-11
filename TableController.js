@@ -173,8 +173,8 @@ class TableController extends Observable {
       this.model.width ++;
 
       // Make new column width match up with the previous one
-      this.model.columns[this.model.width - 2].width =
-          this.model.columns[this.model.width - 1].width;
+      this.model.columns[this.model.width - 1].width =
+          this.model.columns[this.model.width - 2].width;
     }
 
     this.getRelativeCellController(origin, EAST).focus();
