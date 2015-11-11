@@ -203,20 +203,8 @@ describe('Table', ()=>{
   }
 
   beforeEach(() => {
-    table = new Table({
-      position: defaultPosition,
-      columns: defaultColumns,
-      data: defaultData,
-    });
+    table = new Table();
   })
-
-  it('should initialize from serialized data', ()=>{
-    expect(table.toJSON()).toEqual({
-      position: defaultPosition,
-      columns: defaultColumns,
-      data: defaultData,
-    });
-  });
 
   it('should initialize with default values', ()=>{
     const table = new Table();
@@ -227,34 +215,27 @@ describe('Table', ()=>{
     });
   });
 
-  it('should serialize', ()=>{
+  it('should initialize from serialized data and serialize back out', ()=>{
+    table = new Table({
+      position: defaultPosition,
+      columns: defaultColumns,
+      data: defaultData,
+    });
     expect(table.toJSON()).toEqual({
-      position: [3, 5],
-      columns: [
-        table.columns[0].toJSON(),
-        table.columns[1].toJSON(),
-      ],
-      data: [
-        [
-          table.data[0][0].toJSON(),
-          table.data[0][1].toJSON(),
-        ],
-        [
-          table.data[1][0].toJSON(),
-          table.data[1][1].toJSON(),
-        ],
-      ]
+      position: defaultPosition,
+      columns: defaultColumns,
+      data: defaultData,
     });
   });
 
   it('should get and set its position', ()=>{
-    table.position = [4,6];
-    expect(table.position).toEqual([4,6]);
+    table.position = [4, 6];
+    expect(table.position).toEqual([4, 6]);
   });
 
   it('should not be affected when its position return value is mutated', ()=>{
     table.position[0] = 17;
-    expect(table.position).toEqual([3,5]);
+    expect(table.position).toEqual([0, 0]);
   });
 
   it('should prevent negative positions', ()=>{
@@ -266,7 +247,7 @@ describe('Table', ()=>{
   it('should notify observers when its position changes', ()=>{
     const on_position = jasmine.createSpy('on_position');
     table.observe(TABLE_POSITION, on_position);
-    table.position = [4,6];
+    table.position = [4, 6];
     expect(on_position).toHaveBeenCalled();
   });
 

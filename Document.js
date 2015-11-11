@@ -43,7 +43,7 @@ class Document extends Observable {
 describe('Document', ()=>{
 
   it('should initialize with default data', ()=>{
-    new Document([]);
+    new Document();
   });
 
   it('should initalize from serialized data', ()=>{
