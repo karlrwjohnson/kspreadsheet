@@ -192,22 +192,38 @@ class Table extends Observable {
 }
 
 describe('Table', ()=>{
-  const defaultPosition = [3, 5];
-  const defaultColumns = [{width: 4}, {width: 8}];
-  const defaultData = [[{value: 'a'}, {value: 'b'}],
-                       [{value: 'c'}, {value: 'c'}]];
+  //let MockCell;
+  //let MockColumn;
+  let Table_;
   let table;
+
+  class MockCell extends Cell {
+    constructor (...args) {
+      super(...args);
+    }
+  }
+  class MockColumn extends Column {
+    constructor (...args) {
+      super(...args);
+    }
+  }
+
 
   function getValuesAsArray(table) {
     return table.data.map(row => row.map(cell => cell.value));
   }
 
   beforeEach(() => {
-    table = new Table();
+    Table_ = inject(Table, {
+      Cell: MockCell,
+      Column: MockColumn,
+    });
+
+    table = new Table_();
   })
 
   it('should initialize with default values', ()=>{
-    const table = new Table();
+    const table = new Table_();
     expect(table.toJSON()).toEqual({
       position: [0, 0],
       columns: [{width: 10}],
@@ -216,15 +232,19 @@ describe('Table', ()=>{
   });
 
   it('should initialize from serialized data and serialize back out', ()=>{
-    table = new Table({
-      position: defaultPosition,
-      columns: defaultColumns,
-      data: defaultData,
+    const positionJson = [3, 5];
+    const columnJson = [{width: 4}, {width: 8}];
+    const cellJson = [[{value: 'a'}, {value: 'b'}],
+                      [{value: 'c'}, {value: 'c'}]];
+    table = new Table_({
+      position: [3, 5],
+      columns: columnJson,
+      data: cellJson,
     });
     expect(table.toJSON()).toEqual({
-      position: defaultPosition,
-      columns: defaultColumns,
-      data: defaultData,
+      position: positionJson,
+      columns: columnJson,
+      data: cellJson,
     });
   });
 
