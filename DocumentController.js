@@ -84,6 +84,7 @@ class DocumentController {
   }
 
   _on_dbl_click(evt) {
+    console.log('_on_dbl_click', evt);
     if (evt.target === this.tableContainer) {
       console.log(evt);
       if (evt.buttons === CREATE_TABLE_BUTTON) {
