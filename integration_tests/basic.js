@@ -1,6 +1,6 @@
 'use strict';
 
-describe('kspreadsheet', ()=>{
+xdescribe('kspreadsheet', ()=>{
 
   const EM_SIZE = 16;
 

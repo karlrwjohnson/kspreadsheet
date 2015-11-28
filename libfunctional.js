@@ -9,6 +9,63 @@ function arrayFromFn (length, fn) {
   return Array.from(Array(length), (_, i) => fn(i));
 }
 
+class Optional {
+  constructor (thing) {
+    this._thing = thing;
+  }
+
+  static of (thing) {
+    if (thing === null || thing === undefined) {
+      throw new Error('Optional.of() cannot be called with argument ' + thing +
+        '. Try ofNullable instead.');
+    }
+    return new Optional(thing);
+  }
+
+  static ofNullable (thing) {
+    return new Optional(thing);
+  }
+
+  static ofNull () {
+    return new Optional(null);
+  }
+
+  static ofUndefined () {
+    return new Optional(undefined);
+  }
+
+  get() {
+    if (this.has()) {
+      return this._thing;
+    }
+    else {
+      throw new Error('Cannot get value ' + this._thing + ' from Optional.');
+    }
+  }
+
+  has() {
+    return this._thing !== null && this._thing !== undefined;
+  }
+
+  orElseGet(otherThing) {
+    if (this.has()) {
+      return this._thing;
+    }
+    else {
+      return otherThing;
+    }
+  }
+
+  orElseThrow(error) {
+    if (this.has()) {
+      return this._thing;
+    }
+    else {
+      throw error;
+    }
+  }
+}
+
 const Fn = Object.freeze({
   any (iterable, fn) {
     if (fn) {
@@ -80,6 +137,70 @@ const Fn = Object.freeze({
   },
   range (n) {
     return Array.from(Array(n), (_, i) => i);
+  },
+  * filter (iterable, filterFn) {
+    let i = 0;
+    for (let x of iterable) {
+      if (filterFn(x, i)) {
+        yield x;
+      }
+      i++;
+    }
+  },
+  * map (iterable, mapFn) {
+    let i = 0;
+    for (let x of iterable) {
+      yield mapFn(x, i);
+      i++;
+    }
+  },
+  first (iterable) {
+    for (let x of iterable) {
+      return Optional.of(x);
+    }
+    return Optional.ofNull();
+  },
+
+  last (iterable) {
+    if ('slice' in iterable) {
+      return Optional.ofNullable(iterable.slice(-1)[0]);
+    }
+    else {
+      let x;
+      for (x of iterable);
+      return Optional.ofNullable(x);
+    }
+  },
+
+  /**
+   * Sort a set of items from `iterable` into buckets based on a key returned
+   * by mapping function `keyFn`
+   *
+   * @param iterable (Iterable)            The items to sort
+   * @param keyFn (Function<item> -> key)  A mapping function returning which
+   *                                       bucket to place the item into
+   * @return (Map<key, Array<item>>)       The sorted elements
+   */
+  partition (iterable, keyFn) {
+    const ret = new Map();
+    for (let x of iterable) {
+      const key = keyFn(x);
+      if (ret.has(key)) {
+        ret.get(key).push(x);
+      }
+      else {
+        ret.set(key, [x]);
+      }
+    }
+    return ret;
+  },
+
+  * concat (...iterables) {
+    for (let iterable of iterables) {
+      for (let item of iterable) {
+        yield item;
+      }
+    }
   }
 });
 
@@ -91,6 +212,10 @@ describe('Fn', ()=>{
     for (let item of items) {
       yield item;
     }
+  }
+
+  function* emptyGenerator () {
+    return;
   }
 
   describe('.any', ()=>{
@@ -153,8 +278,52 @@ describe('Fn', ()=>{
       expect(Fn.range(1)).toEqual([0]);
       expect(Fn.range(2)).toEqual([0,1]);
       expect(Fn.range(3)).toEqual([0,1,2]);
-    })
-  })
+    });
+  });
+
+  describe('.filter', ()=>{
+    it('should filter items of an iterator', ()=>{
+      const filtered = Fn.filter(itemGenerator(), x => x.match(/[bd]/));
+      expect(Array.from(filtered))
+        .toEqual(['b', 'd']);
+    });
+  });
+
+  describe('.map', ()=>{
+    it('should map items of an iterator', ()=>{
+      const mapped = Fn.map(itemGenerator(), x => x + '_');
+      expect(Array.from(mapped))
+        .toEqual(['a_', 'b_', 'c_', 'd_']);
+    });
+  });
+
+  describe('.first', ()=>{
+    it('should return the first element of a non-null iterator', ()=>{
+      const first = Fn.first(itemGenerator());
+      expect(first.has()).toBeTruthy();
+      expect(first.get()).toBe('a');
+    });
+
+    it('should return an empty optional from a null iterator', ()=>{
+      const first = Fn.first(emptyGenerator());
+      expect(first.has()).toBeFalsy();
+    });
+  });
+
+  describe('.partition', ()=>{
+    it('should sort items based on criteria', ()=>{
+      function isVowel(char) {
+        return char.match(/[aeiou]/);
+      }
+
+      const partitioned = Fn.partition(itemGenerator(), x => isVowel(x) ? true : false);
+
+      expect(Array.from(partitioned)).toEqual([
+        [ true, ['a'] ],
+        [ false, ['b', 'c', 'd'] ],
+      ]);
+    });
+  });
 });
 
 function* zip (iterable1, iterable2) {
