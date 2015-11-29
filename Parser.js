@@ -33,7 +33,7 @@ class ParserItem {
   }
 }
 
-class ParserRule {
+class GrammarRule {
   constructor (subject, predicate, reductionFn) {
     this.subject = subject;
     this.predicate = Object.freeze(predicate);
@@ -51,25 +51,13 @@ class ParserRule {
   }
 }
 
-class ItemSet extends Set {
-  constructor (...args) {
-    super(...args);
-
-    this.nextStateForToken = new Map();
-    this.reduction = null;
+function setsAreEqual(set1, set2) {
+  if (set1 === set2) {
+    return true;
   }
-
-  toString () {
-    return Array.from(this).join('\n');
-  }
-}
-
-function setsEqual(set1, set2) {
-  //console.log('comparing sets', set1, set2);
-  if (set1.size === set2.size) {
+  else if (set1.size === set2.size) {
     for (let item of set1) {
       if (!set2.has(item)) {
-        //console.log('set2 lacks element from set1. element = ', element, ' set1 = ', set1, ' set 2 = ', set2);
         return false;
       }
     }
@@ -80,47 +68,81 @@ function setsEqual(set1, set2) {
   }
 }
 
-function _item_set_closure(itemSet, rulesBySubject) {
-  const ret = new ItemSet(itemSet);
+class ParserState extends Set {
+  constructor (kernelParserItems, rulesBySubject) {
+    super(kernelParserItems);
 
-  //console.log('Kernel of closure is:\n\t' +
-  //  Array.from(ret).join('\n\t'));
+    this.nextStateForToken = new Map();
+    this.reduction = null;
 
-  for (let item of ret) {
-    if (rulesBySubject.has(item.token)) {
-      for (let rule of rulesBySubject.get(item.token)) {
-        // Sets silently ignore adding duplicates
-        // JavaScript lets you mutate a Set without invalidating the iterator, i.e.
-        //     s = new Set([1,2,4,5])
-        //     for (x of s) { if (x === 2) s.add(3); console.log(x) }
-        // prints out "1 2 4 5 3"
-        ret.add(rule.firstItem);
+    for (let item of this) {
+      if (rulesBySubject.has(item.token)) {
+        for (let rule of rulesBySubject.get(item.token)) {
+          // Sets silently ignore adding duplicates
+          // JavaScript lets you mutate a Set without invalidating the iterator, i.e.
+          //     s = new Set([1,2,4,5])
+          //     for (x of s) { if (x === 2) s.add(3); console.log(x) }
+          // prints out "1 2 4 5 3"
+          this.add(rule.firstItem);
+        }
       }
     }
+
+    console.log('Closure is:\n\t' +
+      Array.from(this).join('\n\t'));
   }
 
-  console.log('Closure is:\n\t' +
-    Array.from(ret).join('\n\t'));
+  toString () {
+    return Array.from(this).join('\n');
+  }
 
-  return ret;
+  equals (other) {
+    return setsAreEqual(this, other);
+  }
 }
+
+function indent (x) {
+  return '\t' + String(x).replace(/\n/g, '\n\t');
+}
+
 
 // https://en.wikipedia.org/wiki/LR_parser
 class Parser {
 
-  constructor (rules) {
-    const nonterminals = new Set(rules.map(rule => rule.subject));
+  /**
+   * Expand rule states whose next token is not a leaf so the parser state
+   *
+   * I.e. If a parser state includes the following rule state:
+   *   Expression -> ▲ Value
+   * and there is a rule
+   *   Value -> number
+   * then the parser state should include 
+   */
+  static _add_child_rules(itemSet, rulesBySubject) {
+    const ret = new ParserState(itemSet);
 
-    const rulesBySubject = new Map(
-      Fn.map(nonterminals, subject => [
-        subject,
-        new Set(
-          rules.filter(rule =>
-            rule.subject === subject
-          )
-        )
-      ])
-    );
+    for (let item of ret) {
+      if (rulesBySubject.has(item.token)) {
+        for (let rule of rulesBySubject.get(item.token)) {
+          // Sets silently ignore adding duplicates
+          // JavaScript lets you mutate a Set without invalidating the iterator, i.e.
+          //     s = new Set([1,2,4,5])
+          //     for (x of s) { if (x === 2) s.add(3); console.log(x) }
+          // prints out "1 2 4 5 3"
+          ret.add(rule.firstItem);
+        }
+      }
+    }
+
+    console.log('Closure is:\n\t' +
+      Array.from(ret).join('\n\t'));
+
+    return ret;
+  }
+
+  constructor (grammarRules) {
+    const nonterminals = new Set(grammarRules.map(rule => rule.subject));
+    const rulesBySubject = Fn.partition(grammarRules, rule => rule.subject);
 
     console.log(
       Array.from(rulesBySubject)
@@ -136,96 +158,85 @@ class Parser {
       .join('\n')
     );
 
-    const firstRule = new ParserRule('^', [rules[0].subject, '$'], subject => subject);
+    const firstRule = new GrammarRule('^', [grammarRules[0].subject, '$'], subject => subject);
+    this.firstParseState = new ParserState([firstRule.firstItem], rulesBySubject);
+    const parserStates = new Set([this.firstParseState]);
 
-    this.firstItemSet = _item_set_closure([firstRule.firstItem], rulesBySubject);
-    const itemSets = new Set([this.firstItemSet]);
+    for (let parserState of parserStates) {
+      console.log('Considering state:\n' + indent(parserState));
 
-    for (let itemSet of itemSets) {
-      console.log('Considering item set:\n\t' + itemSet);
-
-      const nextSetsByToken = Fn.partition(
+      const ruleStatesByToken = Fn.partition(
         Fn.filter(
-          itemSet,
+          parserState,
           item => item.token !== null
         ),
         item => item.token
       );
 
-      console.log('There are ' + nextSetsByToken.size + ' tokens: ' +
-        Array.from(nextSetsByToken.keys).join(', '));
+      console.log('There are ' + ruleStatesByToken.size + ' tokens: ' +
+        Array.from(ruleStatesByToken.keys()).join(', '));
 
-      for (let kv of nextSetsByToken) {
-        const nextToken = kv[0];
-        const partialItemSet = kv[1];
+      for (let kv of ruleStatesByToken) {
+        const token = kv[0];
+        const ruleStates = kv[1];
 
-        console.log('Considering token ' + nextToken);
+        console.log('Considering token ' + token);
 
-        const nextItemSet = _item_set_closure(
+        const nextState = new ParserState(
           Fn.map(
-            partialItemSet,
+            ruleStates,
             item => item.nextItem
           ),
           rulesBySubject
         );
 
-        const knownItemSet = Fn.first(
+        const duplicateState = Fn.first(
           Fn.filter(
-            itemSets,
-            knownItemSet => setsEqual(nextItemSet, knownItemSet)
+            parserStates,
+            state => state.equals(nextState)
           )
         );
 
-        if (!knownItemSet.has()) {
-          console.log('Adding new item set');
-          itemSets.add(nextItemSet);
-        } else {
-          console.log('Already had identical item set:\n\t' +
-            Array.from(knownItemSet.get()).join('\n\t'));
-        }
+        const stateToAdd = duplicateState.orElseGet(nextState);
+        parserState.nextStateForToken.set(token, stateToAdd);
+        parserStates.add(stateToAdd);
 
-        itemSet.nextStateForToken.set(
-          nextToken,
-          knownItemSet.orElseGet(nextItemSet)
-        );
+        console.log((duplicateState.has() ? 'Already had state:\n' : 'Adding new state:\n') +
+          indent(stateToAdd));
       }
 
       const terminalItems = new Set(Fn.filter(
-        itemSet,
+        parserState,
         item => item.token === null
       ));
 
       if (terminalItems.size === 1) {
         const reduction = Fn.first(terminalItems).get().rule;
         console.log('Set is terminal. Setting default reduction to rule ' + reduction);
-        itemSet.reduction = reduction;
+        parserState.reduction = reduction;
       }
       else if (terminalItems.size > 1) {
         throw new ShiftShiftConflictError(
-          'Multiple reductions possible for state:\t\n' +
+          'Multiple reductions possible for state:\n\t' +
           Array.from(terminalItems).join('\n\t')
         );
       }
     }
 
     console.log('=== summary ===');
-    console.log('Found ' + itemSets.size + ' item sets.')
-    for (let itemSet of itemSets) {
-      console.log(itemSet.toString() + `\n  (${itemSet.nextStateForToken.size} links)`);
+    console.log('Identified ' + parserStates.size + ' states:')
+    for (let parserState of parserStates) {
+      console.log(parserState.toString() + `\n  (${parserState.nextStateForToken.size} links)`);
     }
   }
 
   parse (tokens) {
     const valueStack = [];
-    const stateStack = [this.firstItemSet];
+    const stateStack = [this.firstParseState];
     const stackEmpty = new Error('Parse stack empty');
 
     function currentState () {
       return Fn.last(stateStack).orElseThrow(stackEmpty);
-    }
-
-    function indent (x) {
-      return '\t' + String(x).replace(/\n/g, '\n\t');
     }
 
     console.log('=== parsing ===');
@@ -319,15 +330,15 @@ const lexer = new Lexer({
 
 const parser = new Parser(
   [
-    new ParserRule('sum',     ['sum', '+', 'product'],   (sum, _, product) => sum + product),
-    new ParserRule('sum',     ['sum', '-', 'product'],   (sum, _, product) => sum - product),
-    new ParserRule('sum',     ['product'],               (product) => product),
+    new GrammarRule('sum',     ['sum', '+', 'product'],   (sum, _, product) => sum + product),
+    new GrammarRule('sum',     ['sum', '-', 'product'],   (sum, _, product) => sum - product),
+    new GrammarRule('sum',     ['product'],               (product) => product),
 
-    new ParserRule('product', ['product', '*', 'value'], (product, _, value) => product * value),
-    new ParserRule('product', ['product', '/', 'value'], (product, _, value) => product / value),
-    new ParserRule('product', ['value'],                 (value) => value),
+    new GrammarRule('product', ['product', '*', 'value'], (product, _, value) => product * value),
+    new GrammarRule('product', ['product', '/', 'value'], (product, _, value) => product / value),
+    new GrammarRule('product', ['value'],                 (value) => value),
 
-    new ParserRule('value',   ['number'],                (number) => Number(number)),
+    new GrammarRule('value',   ['number'],                (number) => Number(number)),
   ]
 );
 
