@@ -28,13 +28,13 @@ class Observable {
     }
   }
 
-  notify(eventType, msg) {
+  notify(eventType, ...msg) {
     if (!this._observers.has(eventType)) {
       throw TypeError('Unsupported event type ' + eventType);
     }
     else {
       for (let observer of this._observers.get(eventType)) {
-        observer(msg);
+        observer(...msg);
       }
     }
   }
@@ -58,7 +58,7 @@ describe('Observable', ()=>{
     expect(observer).toHaveBeenCalledWith(msg);
   });
 
-  it('should support multiple observers for the same event', ()=>{
+  it('should notify multiple subscribed observers for the same event', ()=>{
     const observable = new Observable([EVENT]);
     const observer1 = jasmine.createSpy('on_event');
     const observer2 = jasmine.createSpy('on_event');
@@ -110,5 +110,15 @@ describe('Observable', ()=>{
     observable.notify(EVENT, msg);
     expect(observer1).not.toHaveBeenCalled();
     expect(observer2).not.toHaveBeenCalled();
+  });
+
+  it('should send an arbitrary number of arguments in notifications', ()=>{
+    const observable = new Observable([EVENT]);
+    const observer = jasmine.createSpy('on_event');
+    const msgParam1 = {a: 'b'};
+    const msgParam2 = {c: 'd'};
+    observable.observe(EVENT, observer);
+    observable.notify(EVENT, msgParam1, msgParam2);
+    expect(observer).toHaveBeenCalledWith(msgParam1, msgParam2);
   });
 });
