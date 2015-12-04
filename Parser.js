@@ -6,7 +6,6 @@ const PARSER_PARSE_LOG = Symbol('PARSER_PARSE_LOG');
 class ParseError extends Error {}
 
 class GrammarError extends Error {}
-
 class ReduceReduceConflictError extends GrammarError {}
 
 /**
@@ -61,29 +60,6 @@ class RuleState {
   }
 }
 
-/**
- * Equivalence comparison for sets
- */
-function setsAreEqual(set1, set2) {
-  // Same reference (trivial)
-  if (set1 === set2) {
-    return true;
-  }
-
-  // Same size and same items
-  else if (set1.size === set2.size) {
-    for (let item of set1) {
-      if (!set2.has(item)) {
-        return false;
-      }
-    }
-    return true;
-  }
-  else {
-    return false;
-  }
-}
-
 class ParserState {
   constructor (ruleStates) {
     this.nextStateForToken = new Map();
@@ -117,12 +93,8 @@ class ParserState {
   }
 
   equals (other) {
-    return setsAreEqual(this.ruleStates, other.ruleStates);
+    return Fn.setsAreEqual(this.ruleStates, other.ruleStates);
   }
-}
-
-function indent (x) {
-  return '\t' + String(x).replace(/\n/g, '\n\t');
 }
 
 
@@ -173,6 +145,10 @@ class Parser extends Observable {
     }
 
     return ret;
+  }
+
+  static _indent (x) {
+    return '\t' + String(x).replace(/\n/g, '\n\t');
   }
 
   constructor (grammar) {
@@ -226,7 +202,7 @@ class Parser extends Observable {
   }
 
   _addState (state) {
-    this.notify(PARSER_GRAMMAR_LOG, 'Adding new state:\n' + indent(state));
+    this.notify(PARSER_GRAMMAR_LOG, 'Adding new state:\n' + Parser._indent(state));
     this._states.add(state);
 
     const ruleStatesByToken = Fn.partition(
@@ -253,7 +229,7 @@ class Parser extends Observable {
 
       const duplicate = this._findDuplicateState(child);
       if (duplicate.has()) {
-        this.notify(PARSER_GRAMMAR_LOG, 'Already had state:\n' + indent(state));
+        this.notify(PARSER_GRAMMAR_LOG, 'Already had state:\n' + Parser._indent(state));
         state.nextStateForToken.set(token, duplicate.get());
       }
       else {
@@ -278,12 +254,12 @@ class Parser extends Observable {
 
       this.notify(PARSER_PARSE_LOG, 'Lookahead:', lookahead);
       this.notify(PARSER_PARSE_LOG, 'Value:', valueStack[0]);
-      this.notify(PARSER_PARSE_LOG, 'Current state:\n' + indent(stateStack[0]));
+      this.notify(PARSER_PARSE_LOG, 'Current state:\n' + Parser._indent(stateStack[0]));
 
       if (lookahead !== undefined && stateStack[0].nextStateForToken.has(lookahead.name)) {
         const nextState = stateStack[0].nextStateForToken.get(lookahead.name);
 
-        this.notify(PARSER_PARSE_LOG, 'Shifting forward to state:\n' + indent(nextState));
+        this.notify(PARSER_PARSE_LOG, 'Shifting forward to state:\n' + Parser._indent(nextState));
         valueStack.unshift(lookahead);
         stateStack.unshift(nextState);
 
@@ -312,8 +288,8 @@ class Parser extends Observable {
         stateStack.splice(0, popCount);
         const nextState = stateStack[0].nextStateForToken.get(rule.subject);
 
-        this.notify(PARSER_PARSE_LOG, 'Reducing back to state:\n' + indent(stateStack[0]));
-        this.notify(PARSER_PARSE_LOG, 'Shifting forward to state:\n' + indent(nextState));
+        this.notify(PARSER_PARSE_LOG, 'Reducing back to state:\n' + Parser._indent(stateStack[0]));
+        this.notify(PARSER_PARSE_LOG, 'Shifting forward to state:\n' + Parser._indent(nextState));
 
         stateStack.unshift(nextState);
       }

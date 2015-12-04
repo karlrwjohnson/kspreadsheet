@@ -201,6 +201,30 @@ const Fn = Object.freeze({
         yield item;
       }
     }
+  },
+
+
+  /**
+   * Equivalence comparison for sets
+   */
+  setsAreEqual (set1, set2) {
+    // Same reference (trivial)
+    if (set1 === set2) {
+      return true;
+    }
+
+    // Same size and same items
+    else if (set1.size === set2.size) {
+      for (let item of set1) {
+        if (!set2.has(item)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    else {
+      return false;
+    }
   }
 });
 
