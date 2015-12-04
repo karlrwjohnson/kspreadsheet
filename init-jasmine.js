@@ -30,6 +30,7 @@ jasmine_env.addReporter({
       console.info(`Failures in ${spec.fullName}:`);
       for (let failure of spec.failedExpectations) {
         console.error(failure.stack);
+        console.log(failure);
       }
       console.log(spec);
     }

@@ -222,14 +222,21 @@ class Parser extends Observable {
       const token = _[0];
       const ruleStates = _[1];
 
-      const child = new ParserState(Parser._getClosure(
+      const closure = Parser._getClosure(
         Fn.map(ruleStates, ruleState => ruleState.child),
         this._rulesBySubject
-      ));
+      );
+
+      this.notify(PARSER_GRAMMAR_LOG,
+        'Creating state from rules:\n\t' +
+        Array.from(closure).join('\n\t')
+      );
+
+      const child = new ParserState(closure);
 
       const duplicate = this._findDuplicateState(child);
       if (duplicate.has()) {
-        this.notify(PARSER_GRAMMAR_LOG, 'Already had state:\n' + Parser._indent(state));
+        this.notify(PARSER_GRAMMAR_LOG, '... Already had state');
         state.nextStateForToken.set(token, duplicate.get());
       }
       else {
@@ -277,7 +284,7 @@ class Parser extends Observable {
         this.notify(PARSER_PARSE_LOG, `Reducing using rule ${rule}`);
 
         const popCount = rule.predicate.length;
-        const values = valueStack.splice(0, popCount);
+        const values = valueStack.splice(0, popCount).reverse();
         const reducedValue = rule.reductionFn(...values.map(token => token.value));
         valueStack.unshift(new LexerToken(
           rule.subject,             // name
@@ -299,57 +306,3 @@ class Parser extends Observable {
     return valueStack[valueStack.length - 1].value;
   }
 }
-
-
-const arithmetic = {
-  lexer: new Lexer({
-    number:     '\\d+',
-    whitespace: '\\s+',
-    '+':        '\\+',
-    '*':        '\\*',
-    '-':        '-',
-    '/':        '\\/',
-    '^':        '\\^',
-    '$':        '$',
-    '(':        '\\(',
-    ')':        '\\)',
-  }),
-
-  parser: new Parser([
-    new GrammarRule('sum',     ['sum', '+', 'product'],   (sum, _, product) => sum + product),
-    new GrammarRule('sum',     ['sum', '-', 'product'],   (sum, _, product) => sum - product),
-    new GrammarRule('sum',     ['product'],               (product) => product),
-
-    new GrammarRule('product', ['product', '*', 'value'], (product, _, value) => product * value),
-    new GrammarRule('product', ['product', '/', 'value'], (product, _, value) => product / value),
-    new GrammarRule('product', ['power'],                 (power) => power),
-
-    new GrammarRule('power',   ['power', '^', 'value'],   (power, _, value) => Math.pow(value, power)),
-    new GrammarRule('power',   ['value'],                 (value) => value),
-
-    new GrammarRule('value',   ['number'],                (number) => Number(number)),
-    new GrammarRule('value',   ['(', 'sum', ')'],         (_1, sum, _2) => Number(sum)),
-  ]),
-
-  filterWhitespace: stream => Fn.filter(stream, token => token.name !== 'whitespace'),
-
-  _loggingOberverHandle: null,
-
-  exec: function(expression, log) {
-    if (this._loggingOberverHandle && !log) {
-      this._loggingOberverHandle.cancel();
-    }
-    else if (!this._loggingOberverHandle && !!log) {
-      this.parser.observe(PARSER_PARSE_LOG, (...args) => console.log(...args));
-    }
-
-    return this.parser.parse(this.filterWhitespace(this.lexer.lex(expression)));
-  }
-}
-
-//parser.observe(PARSER_GRAMMAR_LOG, (...args) => console.log(...args));
-//parser.observe(PARSER_PARSE_LOG, (...args) => console.log(...args));
-
-
-const sampleExpression = '12 + 3 * 5';
-console.log(sampleExpression, '=', arithmetic.exec(sampleExpression));
