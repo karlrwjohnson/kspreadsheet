@@ -1,5 +1,7 @@
 'use strict';
 
+const Fn = require('../util/Fn');
+
 class LexerError extends Error {}
 
 class LexerToken {
@@ -12,7 +14,11 @@ class LexerToken {
   }
 }
 
-class Lexer {
+module.exports = class Lexer {
+
+  static get Error () { return LexerError; }
+  static get Token () { return LexerToken; }
+
   constructor (defs) {
     this._defs = Object.keys(defs)
       .map(name => ({
@@ -50,33 +56,4 @@ class Lexer {
 
     yield new LexerToken('$', '', string.length);
   }
-}
-
-describe('Lexer', ()=>{
-  it('should tokenize a basic arithmetic expression', ()=>{
-    const lexer = new Lexer({
-      number:     '\\d+',
-      whitespace: '\\s+',
-      '+':        '\\+',
-      '*':        '\\*',
-      '-':        '-',
-      '/':        '\\/',
-    });
-
-    const tokens = Array.from(lexer.lex('12 + 3 * 4'));
-
-    expect(tokens).toEqual([
-      new LexerToken('number',     '12',                 0),
-      new LexerToken('whitespace', jasmine.any(String),  2),
-      new LexerToken('+',          '+',                  3),
-      new LexerToken('whitespace', jasmine.any(String),  4),
-      new LexerToken('number',     '3',                  5),
-      new LexerToken('whitespace', jasmine.any(String),  6),
-      new LexerToken('*',          '*',                  7),
-      new LexerToken('whitespace', jasmine.any(String),  8),
-      new LexerToken('number',     '4',                  9),
-      new LexerToken('$',          '',                  10),
-    ]);
-  });
-});
-
+};

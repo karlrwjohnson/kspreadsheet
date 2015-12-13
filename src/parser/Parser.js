@@ -1,105 +1,26 @@
 'use strict';
 
-const PARSER_GRAMMAR_LOG = Symbol('PARSER_GRAMMAR_LOG');
-const PARSER_PARSE_LOG = Symbol('PARSER_PARSE_LOG');
+const Fn = require('../util/Fn');
+const GrammarRule = require('./GrammarRule');
+const Lexer = require('./Lexer');
+const Observable = require('../util/Observable');
+const ParserState = require('./ParserState');
+const ParseError = require('./ParseError');
 
-class ParseError extends Error {}
-
-class GrammarError extends Error {}
-class ReduceReduceConflictError extends GrammarError {}
-
-/**
- * A rule defining a language, i.e. Value -> int or Expression -> Value + Value
- */
-class GrammarRule {
-  constructor (subject, predicate, reductionFn) {
-    this.subject = subject;
-    this.predicate = Object.freeze(predicate);
-    this.reductionFn = reductionFn;
-
-    this.firstState = new RuleState(this, 0);
-
-    this._toString = this.subject + ' → ' + this.predicate.join(' ');
-
-    Object.freeze(this);
-  }
-
-  toString() {
-    return this._toString;
-  }
-}
+const GRAMMAR_LOG = Symbol('Parser.GRAMMAR_LOG');
+const PARSE_LOG   = Symbol('Parser.PARSE_LOG');
 
 /**
- * A position inside a GrammarRule, indicating how much of the rule has been
- * matched by a parser.
+ * An LR parser implementation.
+ *
+ * Based on the algorithm described on Wikipedia:
+ * https://en.wikipedia.org/wiki/LR_parser
  */
-class RuleState {
-  constructor (rule, cursor) {
-    this.rule = rule;
-    this.cursor = cursor || 0;
-
-    this.token = (this.cursor < this.rule.predicate.length) ? 
-      this.rule.predicate[this.cursor] :
-      null;
-
-    this.child = (this.token === null) ?
-      null :
-      new RuleState(this.rule, this.cursor + 1);
-
-    this._toString = this.rule.subject + ' → ' + [].concat(
-        this.rule.predicate.slice(0, this.cursor),
-        ['▲'],
-        this.rule.predicate.slice(this.cursor)
-      ).join(' ')
-
-    Object.freeze(this);
-  }
-
-  toString() {
-    return this._toString;
-  }
-}
-
-class ParserState {
-  constructor (ruleStates) {
-    this.nextStateForToken = new Map();
-    this.ruleStates = ruleStates;
-
-    // Add reduction rule, if applicable
-    const terminalRuleStates = Array.from(Fn.filter(
-      ruleStates,
-      ruleState => ruleState.token === null
-    ));
-
-    if (terminalRuleStates.length === 0) {
-      this.reduction = null;
-    }
-    else if (terminalRuleStates.length === 1) {
-      this.reduction = terminalRuleStates[0].rule;
-    }
-    else if (terminalRuleStates.length > 1) {
-      throw new ReduceReduceConflictError(
-        'Multiple reductions possible for state:\n\t' +
-        terminalRuleStates.join('\n\t')
-      );
-    }
-
-    Object.freeze(this);
-  }
-
-  toString () {
-    return (this.reduction ? `REDUCE ${this.reduction}\n` : '') +
-      Array.from(this.ruleStates).join('\n');
-  }
-
-  equals (other) {
-    return Fn.setsAreEqual(this.ruleStates, other.ruleStates);
-  }
-}
-
-
-// https://en.wikipedia.org/wiki/LR_parser
+module.exports =
 class Parser extends Observable {
+
+  static get GRAMMAR_LOG () { return GRAMMAR_LOG; }
+  static get PARSE_LOG () { return PARSE_LOG; }
 
   /**
    * Expand a set of rule states so that all possible leaves are accounted for.
@@ -114,7 +35,7 @@ class Parser extends Observable {
    * is defined as "Value -> number", then the rule state "Value -> ▲ number" is
    * added.
    *
-   * @param ruleState       An iterable collection of rule states forming the
+   * @param ruleStates      An iterable collection of rule states forming the
    *                        "kernel" of the set
    * @param rulesBySubject  Map of sets of rule states from which to expand the
    *                        kernel
@@ -152,7 +73,7 @@ class Parser extends Observable {
   }
 
   constructor (grammar) {
-    super([ PARSER_GRAMMAR_LOG, PARSER_PARSE_LOG ]);
+    super([ Parser.GRAMMAR_LOG, Parser.PARSE_LOG ]);
 
     this._states = new Set();
     this._firstState = null;
@@ -170,7 +91,7 @@ class Parser extends Observable {
     this._rulesBySubject = Fn.partition(grammar, rule => rule.subject);
 
     // Print summary of grammar
-    this.notify(PARSER_GRAMMAR_LOG,
+    this.notify(Parser.GRAMMAR_LOG,
       Array.from(this._rulesBySubject).map(subjectAndRule =>
         'Rules for ' + subjectAndRule[0] + ':\n' +
         subjectAndRule[1].map(rule => '\t' + rule.predicate.join(' ')).join('\n')
@@ -185,10 +106,10 @@ class Parser extends Observable {
     this._addState(this._lastState);
     this._addState(this._firstState);
 
-    this.notify(PARSER_GRAMMAR_LOG, '=== summary ===');
-    this.notify(PARSER_GRAMMAR_LOG, 'Identified ' + this._states.size + ' states:')
+    this.notify(Parser.GRAMMAR_LOG, '=== summary ===');
+    this.notify(Parser.GRAMMAR_LOG, 'Identified ' + this._states.size + ' states:');
     for (let state of this._states) {
-      this.notify(PARSER_GRAMMAR_LOG, state.toString() + `\n  (${state.nextStateForToken.size} links)`);
+      this.notify(Parser.GRAMMAR_LOG, state.toString() + `\n  (${state.nextStateForToken.size} links)`);
     }
   }
 
@@ -202,7 +123,7 @@ class Parser extends Observable {
   }
 
   _addState (state) {
-    this.notify(PARSER_GRAMMAR_LOG, 'Adding new state:\n' + Parser._indent(state));
+    this.notify(Parser.GRAMMAR_LOG, 'Adding new state:\n' + Parser._indent(state));
     this._states.add(state);
 
     const ruleStatesByToken = Fn.partition(
@@ -213,7 +134,7 @@ class Parser extends Observable {
       ruleState => ruleState.token
     );
 
-    this.notify(PARSER_GRAMMAR_LOG,
+    this.notify(Parser.GRAMMAR_LOG,
       'There are ' + ruleStatesByToken.size + ' tokens: ' +
       Array.from(ruleStatesByToken.keys()).join(', ')
     );
@@ -227,7 +148,7 @@ class Parser extends Observable {
         this._rulesBySubject
       );
 
-      this.notify(PARSER_GRAMMAR_LOG,
+      this.notify(Parser.GRAMMAR_LOG,
         'Creating state from rules:\n\t' +
         Array.from(closure).join('\n\t')
       );
@@ -236,7 +157,7 @@ class Parser extends Observable {
 
       const duplicate = this._findDuplicateState(child);
       if (duplicate.has()) {
-        this.notify(PARSER_GRAMMAR_LOG, '... Already had state');
+        this.notify(Parser.GRAMMAR_LOG, '... Already had state');
         state.nextStateForToken.set(token, duplicate.get());
       }
       else {
@@ -251,7 +172,7 @@ class Parser extends Observable {
     const stateStack = [this._firstState];
     const stackEmpty = new Error('Parse stack empty');
 
-    this.notify(PARSER_PARSE_LOG, '=== parsing ===');
+    this.notify(Parser.PARSE_LOG, '=== parsing ===');
 
     const iterator = tokens[Symbol.iterator]();
     let iteration = iterator.next();
@@ -259,14 +180,14 @@ class Parser extends Observable {
     while (stateStack[0] !== this._lastState) {
       const lookahead = iteration.value;
 
-      this.notify(PARSER_PARSE_LOG, 'Lookahead:', lookahead);
-      this.notify(PARSER_PARSE_LOG, 'Value:', valueStack[0]);
-      this.notify(PARSER_PARSE_LOG, 'Current state:\n' + Parser._indent(stateStack[0]));
+      this.notify(Parser.PARSE_LOG, 'Lookahead:', lookahead);
+      this.notify(Parser.PARSE_LOG, 'Value:', valueStack[0]);
+      this.notify(Parser.PARSE_LOG, 'Current state:\n' + Parser._indent(stateStack[0]));
 
       if (lookahead !== undefined && stateStack[0].nextStateForToken.has(lookahead.name)) {
         const nextState = stateStack[0].nextStateForToken.get(lookahead.name);
 
-        this.notify(PARSER_PARSE_LOG, 'Shifting forward to state:\n' + Parser._indent(nextState));
+        this.notify(Parser.PARSE_LOG, 'Shifting forward to state:\n' + Parser._indent(nextState));
         valueStack.unshift(lookahead);
         stateStack.unshift(nextState);
 
@@ -281,12 +202,12 @@ class Parser extends Observable {
       else {
         const rule = stateStack[0].reduction;
 
-        this.notify(PARSER_PARSE_LOG, `Reducing using rule ${rule}`);
+        this.notify(Parser.PARSE_LOG, `Reducing using rule ${rule}`);
 
         const popCount = rule.predicate.length;
         const values = valueStack.splice(0, popCount).reverse();
         const reducedValue = rule.reductionFn(...values.map(token => token.value));
-        valueStack.unshift(new LexerToken(
+        valueStack.unshift(new Lexer.Token(
           rule.subject,             // name
           reducedValue,             // value
           values[0].characterIndex  // characterIndex
@@ -295,14 +216,14 @@ class Parser extends Observable {
         stateStack.splice(0, popCount);
         const nextState = stateStack[0].nextStateForToken.get(rule.subject);
 
-        this.notify(PARSER_PARSE_LOG, 'Reducing back to state:\n' + Parser._indent(stateStack[0]));
-        this.notify(PARSER_PARSE_LOG, 'Shifting forward to state:\n' + Parser._indent(nextState));
+        this.notify(Parser.PARSE_LOG, 'Reducing back to state:\n' + Parser._indent(stateStack[0]));
+        this.notify(Parser.PARSE_LOG, 'Shifting forward to state:\n' + Parser._indent(nextState));
 
         stateStack.unshift(nextState);
       }
     }
-    this.notify(PARSER_PARSE_LOG, 'I can log!');
+    this.notify(Parser.PARSE_LOG, 'I can log!');
 
     return valueStack[valueStack.length - 1].value;
   }
-}
+};

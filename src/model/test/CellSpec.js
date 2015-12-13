@@ -1,35 +1,8 @@
 'use strict';
 
-const CELL_VALUE = Symbol('CELL_VALUE');
+//require('init-jasmine').applyEnvironment(global);
 
-class Cell extends Observable {
-  constructor (json) {
-    super([CELL_VALUE]);
-
-    if (json) {
-      this.value = json.value;
-    } else {
-      this.value = '';
-    }
-  }
-
-  toJSON () {
-    return {
-      value: this.value
-    }
-  }
-
-  get value () { return this._value; }
-
-  set value (_) {
-    this._value = _;
-    this.notify(CELL_VALUE);
-  }
-
-  isEmpty () {
-    return this._value === '';
-  }
-}
+const Cell = require('../Cell');
 
 describe('Cell', ()=>{
   let cell;
@@ -59,7 +32,7 @@ describe('Cell', ()=>{
 
   it('should notify about changes to its value', ()=>{
     const observer = jasmine.createSpy('on_value');
-    cell.observe(CELL_VALUE, observer);
+    cell.observe(Cell.VALUE, observer);
     cell.value = 'qwer';
     expect(observer).toHaveBeenCalled();
   });

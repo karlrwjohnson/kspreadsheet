@@ -1,1 +1,4 @@
 .nwjs
+.node
+.idea
+node_modules

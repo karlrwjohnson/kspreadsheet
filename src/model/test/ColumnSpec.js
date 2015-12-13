@@ -1,40 +1,6 @@
 'use strict';
 
-const COLUMN_WIDTH = Symbol('COLUMN_WIDTH');
-
-class Column extends Observable {
-  constructor (json) {
-    super([COLUMN_WIDTH]);
-
-    if (json) {
-      this.width = json.width;
-    }
-    else {
-      this._width = 10;
-    }
-  }
-
-  toJSON () {
-    return {
-      width: this.width,
-    };
-  }
-
-  get width () { return this._width; }
-
-  set width (_) {
-    if (_ <= 0) {
-      throw new OutOfBoundsException('Negative width');
-    }
-    else if (typeof _ !== 'number') {
-      throw new TypeError('Width must be a number');
-    }
-    else {
-      this._width = _;
-      this.notify(COLUMN_WIDTH);
-    }
-  }
-}
+const Column = require('../Column');
 
 describe('Column', ()=>{
   const defaultWidth = 16;
@@ -73,7 +39,7 @@ describe('Column', ()=>{
 
   it('should notify about changes to its width', ()=>{
     const observer = jasmine.createSpy('on_width');
-    column.observe(COLUMN_WIDTH, observer);
+    column.observe(Column.WIDTH, observer);
     column.width = 20;
     expect(observer).toHaveBeenCalled();
   });

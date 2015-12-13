@@ -1,17 +1,32 @@
 'use strict';
 
+const bindObservers = require('../util/bindObservers');
+const CellController = require('./CellController');
+const DiscreteDraggable = require('../view/DiscreteDraggable');
+const Dom = require('../util/Dom');
+const Fn = require('../util/Fn');
+const IllegalArgumentException = require('../IllegalArgumentException');
+const Observable = require('../util/Observable');
+const Table = require('../model/Table');
+const Vec = require('../util/Vec');
+
 const TABLE_MOVE_BUTTON = 1;
 
-const TABLE_CONTROLLER_EMPTY_BLUR = Symbol('TABLE_CONTROLLER_EMPTY_BLUR');
-const TABLE_CONTROLLER_FOCUS = Symbol('TABLE_CONTROLLER_FOCUS');
-const TABLE_CONTROLLER_BLUR = Symbol('TABLE_CONTROLLER_BLUR');
+const EMPTY_BLUR = Symbol('TableController.EMPTY_BLUR');
+const FOCUS = Symbol('TableController.FOCUS');
+const BLUR = Symbol('TableController.BLUR');
 
 class TableController extends Observable {
+
+  static get EMPTY_BLUR () { return EMPTY_BLUR; }
+  static get FOCUS () { return FOCUS; }
+  static get BLUR () { return BLUR; }
+
   constructor (model) {
     super([
-      TABLE_CONTROLLER_EMPTY_BLUR,
-      TABLE_CONTROLLER_FOCUS,
-      TABLE_CONTROLLER_BLUR,
+      TableController.EMPTY_BLUR,
+      TableController.FOCUS,
+      TableController.BLUR,
     ]);
     bindObservers(this);
 
@@ -26,7 +41,7 @@ class TableController extends Observable {
     );
 
     new DiscreteDraggable(this.element, TABLE_MOVE_BUTTON,
-        (dx, dy) => this.model.position = vecAdd(this.model.position, [dx, dy]));
+        (dx, dy) => this.model.position = Vec.add(this.model.position, [dx, dy]));
 
     this.model = model;
 
@@ -40,11 +55,11 @@ class TableController extends Observable {
     // Remove old observers
     let observer;
     while ((observer = this._model_observers.pop())) {
-      obsever.cancel();
+      observer.cancel();
     }
 
     // Remove old DOM
-    removeChildren(this.rowContainer);
+    Dom.removeChildren(this.rowContainer);
 
     this._model = _;
 
@@ -55,9 +70,9 @@ class TableController extends Observable {
     }
 
     // Add new observers
-    this._model_observers.push(this.model.observe(TABLE_POSITION, this._on_position));
-    this._model_observers.push(this.model.observe(TABLE_SPLICE_ROWS, this._on_row_splice));
-    this._model_observers.push(this.model.observe(TABLE_SPLICE_COLUMNS, this._on_column_splice));
+    this._model_observers.push(this.model.observe(Table.POSITION, this._on_position));
+    this._model_observers.push(this.model.observe(Table.SPLICE_ROWS, this._on_row_splice));
+    this._model_observers.push(this.model.observe(Table.SPLICE_COLUMNS, this._on_column_splice));
 
     // Init properties
     this._on_position();
@@ -65,7 +80,7 @@ class TableController extends Observable {
 
   _makeRowView(modelRow) {
     const rowElement = Dom.tr();
-    for (let cell_column of zip(modelRow, this.model.columns)) {
+    for (let cell_column of Fn.zip(modelRow, this.model.columns)) {
       const model_cell = cell_column[0]; // No destructuring assignment yet
       const column = cell_column[1];
 
@@ -77,14 +92,14 @@ class TableController extends Observable {
 
   _makeCellController(modelCell, column) {
     const cellController = new CellController(modelCell, column);
-    cellController.observe(NORTH, this._on_navigate_north);
-    cellController.observe(SOUTH, this._on_navigate_south);
-    cellController.observe(EAST, this._on_navigate_east);
-    cellController.observe(WEST, this._on_navigate_west);
-    cellController.observe(PREVIOUS, this._on_navigate_previous);
-    cellController.observe(NEWLINE, this._on_navigate_newline);
-    cellController.observe(CELL_CONTROLLER_FOCUS, this._on_cell_controller_focus);
-    cellController.observe(CELL_CONTROLLER_BLUR, this._on_cell_controller_blur);
+    cellController.observe(CellController.NORTH, this._on_navigate_north);
+    cellController.observe(CellController.SOUTH, this._on_navigate_south);
+    cellController.observe(CellController.EAST, this._on_navigate_east);
+    cellController.observe(CellController.WEST, this._on_navigate_west);
+    cellController.observe(CellController.PREVIOUS, this._on_navigate_previous);
+    cellController.observe(CellController.NEWLINE, this._on_navigate_newline);
+    cellController.observe(CellController.FOCUS, this._on_cell_controller_focus);
+    cellController.observe(CellController.BLUR, this._on_cell_controller_blur);
     return cellController;
   }
 
@@ -95,22 +110,22 @@ class TableController extends Observable {
 
   getRelativeCellController (cellController, direction) {
     const parentElement = cellController.element.parentElement;
-    const elementColumn = getIndexOfElementInParent(cellController.element);
+    const elementColumn = Dom.getIndexOfElementInParent(cellController.element);
 
     switch(direction) {
-      case NORTH:
+      case CellController.NORTH:
         return (parentElement.previousSibling) ?
             parentElement.previousSibling.children[elementColumn].controller :
             null;
-      case SOUTH:
+      case CellController.SOUTH:
         return (parentElement.nextSibling) ?
             parentElement.nextSibling.children[elementColumn].controller :
             null;
-      case WEST:
+      case CellController.WEST:
         return (cellController.element.previousSibling) ?
             cellController.element.previousSibling.controller :
             null;
-      case EAST:
+      case CellController.EAST:
         return (cellController.element.nextSibling) ?
             cellController.element.nextSibling.controller :
             null;
@@ -121,7 +136,7 @@ class TableController extends Observable {
 
   _on_navigate_north (origin) {
     const parentElement = origin.element.parentElement;
-    const targetController = this.getRelativeCellController(origin, NORTH);
+    const targetController = this.getRelativeCellController(origin, CellController.NORTH);
 
     if (targetController) {
       targetController.focus();
@@ -142,7 +157,7 @@ class TableController extends Observable {
       this.model.height ++;
     }
 
-    this.getRelativeCellController(origin, SOUTH).focus()
+    this.getRelativeCellController(origin, CellController.SOUTH).focus()
   }
 
   _on_navigate_newline (origin) {
@@ -158,7 +173,7 @@ class TableController extends Observable {
 
   _on_navigate_west (origin) {
     if (origin.element.previousSibling !== null) {
-      this.getRelativeCellController(origin, WEST).focus();
+      this.getRelativeCellController(origin, CellController.WEST).focus();
 
       // Prune empty columns at the right edge of the table
       if (origin.element.nextSibling === null &&
@@ -177,14 +192,14 @@ class TableController extends Observable {
           this.model.columns[this.model.width - 2].width;
     }
 
-    this.getRelativeCellController(origin, EAST).focus();
+    this.getRelativeCellController(origin, CellController.EAST).focus();
   }
 
   _on_navigate_previous (origin) {
     // Select the last child of the previous row if necessary
     const parentElement = origin.element.parentElement;
     if (origin.element.previousSibling === null && parentElement.previousSibling !== null) {
-      const parentPreviousSibling = parentElement.previousSibling
+      const parentPreviousSibling = parentElement.previousSibling;
       parentPreviousSibling.children[parentPreviousSibling.children.length - 1].controller.focus();
     }
     else {
@@ -199,14 +214,14 @@ class TableController extends Observable {
 
     // Remove old rows
     for (let i of Fn.range(remove)) {
-      removeChildAtIndex(this.rowContainer, index + i);
+      Dom.removeChildAtIndex(this.rowContainer, index + i);
     }
 
     // Insert new rows
     for (let i of Fn.range(insert)) {
       const row = this.model.getCellsInRow(index + i);
       const rowView = this._makeRowView(row);
-      insertChildAtIndex(this.rowContainer, index + i, rowView);
+      Dom.insertChildAtIndex(this.rowContainer, index + i, rowView);
     }
   }
 
@@ -222,7 +237,7 @@ class TableController extends Observable {
 
       // Remove old cells
       for (let i of Fn.range(remove)) {
-        removeChildAtIndex(rowElement, index + i);
+        Dom.removeChildAtIndex(rowElement, index + i);
       }
 
       // Insert new cells
@@ -230,7 +245,7 @@ class TableController extends Observable {
         const cell = rowModel[index + i];
         const column = this.model.columns[index + i];
         const cellController = this._makeCellController(cell, column);
-        insertChildAtIndex(rowElement, index + i, cellController.element);
+        Dom.insertChildAtIndex(rowElement, index + i, cellController.element);
       }
     }
   }
@@ -252,13 +267,13 @@ class TableController extends Observable {
       if (_) {
         this._focused = true;
         this.element.classList.add('focused');
-        this.notify(TABLE_CONTROLLER_FOCUS, this);
+        this.notify(TableController.FOCUS, this);
       }
       else {
         this._focused = false;
         this.element.classList.remove('focused');
         this.focusedCellController = false;
-        this.notify(TABLE_CONTROLLER_BLUR, this);
+        this.notify(TableController.BLUR, this);
       }
     }
   }
@@ -292,12 +307,12 @@ class TableController extends Observable {
     if (this.focusedCellController) {
       const previouslyFocused = this.focusedCellController;
       const rowElement = this.focusedCellController.element.parentElement;
-      const rowIndex = getIndexOfElementInParent(rowElement);
+      const rowIndex = Dom.getIndexOfElementInParent(rowElement);
 
       this.model.spliceRows(rowIndex, 1, 0);
 
       // Move the focus to the new row
-      this.getRelativeCellController(previouslyFocused, NORTH).focus();
+      this.getRelativeCellController(previouslyFocused, CellController.NORTH).focus();
     }
     else {
       throw Error('No cell is focused');
@@ -308,11 +323,11 @@ class TableController extends Observable {
   deleteRow () {
     if (this.focusedCellController) {
       const focusNext =
-          this.getRelativeCellController(this.focusedCellController, SOUTH) ||
-          this.getRelativeCellController(this.focusedCellController, NORTH);
+          this.getRelativeCellController(this.focusedCellController, CellController.SOUTH) ||
+          this.getRelativeCellController(this.focusedCellController, CellController.NORTH);
 
       const rowElement = this.focusedCellController.element.parentElement;
-      const rowIndex = getIndexOfElementInParent(rowElement);
+      const rowIndex = Dom.getIndexOfElementInParent(rowElement);
 
       this.model.spliceRows(rowIndex, 0, 1);
 
@@ -328,7 +343,7 @@ class TableController extends Observable {
     if (this.focusedCellController) {
       const previouslyFocused = this.focusedCellController;
       const cellElement = this.focusedCellController.element;
-      const columnIndex = getIndexOfElementInParent(cellElement);
+      const columnIndex = Dom.getIndexOfElementInParent(cellElement);
 
       this.model.spliceColumns(columnIndex, 1, 0);
 
@@ -337,7 +352,7 @@ class TableController extends Observable {
           this.model.columns[columnIndex + 1].width;
 
       // Move the focus to the new column
-      this.getRelativeCellController(previouslyFocused, WEST).focus();
+      this.getRelativeCellController(previouslyFocused, CellController.WEST).focus();
     }
     else {
       throw Error('No cell is focused');
@@ -348,11 +363,11 @@ class TableController extends Observable {
   deleteColumn () {
     if (this.focusedCellController) {
       const focusNext =
-          this.getRelativeCellController(this.focusedCellController, EAST) ||
-          this.getRelativeCellController(this.focusedCellController, WEST);
+          this.getRelativeCellController(this.focusedCellController, CellController.EAST) ||
+          this.getRelativeCellController(this.focusedCellController, CellController.WEST);
 
       const cellElement = this.focusedCellController.element;
-      const columnIndex = getIndexOfElementInParent(cellElement);
+      const columnIndex = Dom.getIndexOfElementInParent(cellElement);
       this.model.spliceColumns(columnIndex, 0, 1);
 
       focusNext.focus()
@@ -362,3 +377,5 @@ class TableController extends Observable {
     }
   }
 }
+
+module.exports = TableController;

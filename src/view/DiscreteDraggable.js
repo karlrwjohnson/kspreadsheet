@@ -1,24 +1,13 @@
 'use strict';
 
-const ENTER_KEY_CODE =  13;
-const TAB_KEY_CODE = 9;
-const LEFT_KEY_CODE = 37;
-const UP_KEY_CODE = 38;
-const RIGHT_KEY_CODE = 39;
-const DOWN_KEY_CODE = 40;
-
-function getEmSize (element) {
-  const computedStyle = window.getComputedStyle(element);
-  const parsedFontSize = computedStyle.fontSize.match(/^(\d+)px$/);
-  if (!parsedFontSize) {
-    throw Error(`Expected font size in pixels. Got ${computedStyle.fontSize}`);
-  }
-  return Number(parsedFontSize[1]);  
-}
+const bindObservers = require('../util/bindObservers');
+const libview = require('../util/libview');
+const OutOfBoundsException = require('../OutOfBoundsException');
 
 /**
  * Wraps an element so it can be dragged across a discrete grid of em units.
  */
+module.exports =
 class DiscreteDraggable {
   /**
    * @param element  Element to bind to
@@ -38,22 +27,28 @@ class DiscreteDraggable {
     this.element.addEventListener('mousedown', this._on_mouse_down);
   }
 
+  get window () {
+    // http://stackoverflow.com/questions/16010204/get-reference-of-window-object-from-a-dom-element
+    return this.element.ownerDocument.defaultView;
+  }
+
   _on_mouse_down (evt) {
     if (evt.buttons === this.button) {
       evt.stopPropagation();
       evt.preventDefault();
 
-      this.emSize = getEmSize(this.element);
-      this.start_x = evt.pageX
+      this.emSize = libview.getEmSize(this.element);
+      this.start_x = evt.pageX;
       this.start_y = evt.pageY;
 
-      window.addEventListener('mousemove', this._on_mouse_drag);
-      window.addEventListener('mouseup', this._on_mouse_up);
-      window.addEventListener('click', this._on_click);
+      this.window.addEventListener('mousemove', this._on_mouse_drag);
+      this.window.addEventListener('mouseup', this._on_mouse_up);
+      this.window.addEventListener('click', this._on_click);
     }
   }
 
   _on_mouse_drag (evt) {
+    //noinspection JSBitwiseOperatorUsage
     if (evt.buttons & this.button) {
       evt.stopPropagation();
       evt.preventDefault();
@@ -74,7 +69,7 @@ class DiscreteDraggable {
             throw e;
           }
         }
-        
+
       }
     }
     else {
@@ -97,11 +92,11 @@ class DiscreteDraggable {
     // To prevent these rogue clicks, we capture the event here.
     evt.stopPropagation();
     evt.preventDefault();
-    window.removeEventListener('click', this._on_click);
+    this.window.removeEventListener('click', this._on_click);
   }
 
   _stopDrag() {
-    window.removeEventListener('mousemove', this._on_mouse_drag);
-    window.removeEventListener('mouseup', this._on_mouse_up);
+    this.window.removeEventListener('mousemove', this._on_mouse_drag);
+    this.window.removeEventListener('mouseup', this._on_mouse_up);
   }
-}
+};

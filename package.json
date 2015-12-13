@@ -1,0 +1,22 @@
+{
+  "name": "KSpreadsheet",
+  "main": "index.htm",
+  "window": {
+    "toolbar": true,
+    "width": 800,
+    "height": 600
+  },
+  "chromium-args": "--javascript-harmony",
+
+  "license": "UNLICENSED",
+  "dependencies": {
+    "jasmine-core": "2.4.1"
+  },
+
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/karlrwjohnson/kspreadsheet.git"
+  },
+
+  "description": "Go away, it's not ready yet."
+}

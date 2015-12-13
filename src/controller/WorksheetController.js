@@ -1,17 +1,25 @@
 'use strict';
 
+const bindObservers = require('../util/bindObservers');
+const Dom = require('../util/Dom');
+const libview = require('../util/libview');
+const Worksheet = require('../model/Worksheet');
+const Table = require('../model/Table');
+const TableController = require('./TableController');
+
 const CREATE_TABLE_BUTTON = 0;
 
-class DocumentController {
+module.exports =
+class WorksheetController {
   
-  constructor (document) {
+  constructor (worksheet) {
     bindObservers(this);
 
     this.tableControllers = new Map();
     this._focusedTable = null;
 
     this._document_observers = [];
-    this.element = Dom.div({'class': 'document-root flex-column flex-grow'},
+    this.element = Dom.div({'class': 'worksheet-root flex-column flex-grow'},
       this.toolbarContainer = Dom.nav({'class': 'toolbar'},
         this.deleteTableButton = Dom.button('Delete Table'),
         this.insertColumnButton = Dom.button({title: 'Insert Column'}, Dom.img({href: 'img/insertColumn.svg'}), 'Insert Column'),
@@ -19,15 +27,15 @@ class DocumentController {
         this.insertRowButton = Dom.button({title: 'Insert Row'}, Dom.img({href: 'img/insertRow.svg'}), 'Insert Row'),
         this.deleteRowButton = Dom.button({title: 'Delete Row'}, Dom.img({href: 'img/deleteRow.svg'}), 'Delete Row')
       ),
-      this.tableContainer = Dom.div({'class': 'document flex-grow'})
+      this.tableContainer = Dom.div({'class': 'worksheet flex-grow'})
     );
 
     this.tableContainer.addEventListener('click', this._on_click);
     this.tableContainer.addEventListener('dblclick', this._on_dbl_click);
-    this.deleteTableButton.addEventListener('click', () => {})
+    this.deleteTableButton.addEventListener('click', () => {});
 
     this.deleteTableButton.addEventListener('click', () => {
-      this.document.removeTable(this.focusedTable.model);
+      this.worksheet.removeTable(this.focusedTable.model);
       this.focusedTable = null;
     });
     this.insertColumnButton.addEventListener('click', () => this.focusedTable.insertColumn());
@@ -35,14 +43,14 @@ class DocumentController {
     this.insertRowButton.addEventListener('click', () => this.focusedTable.insertRow());
     this.deleteRowButton.addEventListener('click', () => this.focusedTable.deleteRow());
 
-    this.document = document;
+    this.worksheet = worksheet;
   }
 
-  get document () {
+  get worksheet () {
     return this._document;
   }
 
-  set document (_) {
+  set worksheet (_) {
     let observer;
     while ((observer = this._document_observers.pop())) {
       observer.cancel();
@@ -50,10 +58,10 @@ class DocumentController {
 
     this._document = _;
 
-    this._document_observers.push(this.document.observe(DOCUMENT_ADD_TABLE, this._on_addTable));
-    this._document_observers.push(this.document.observe(DOCUMENT_REMOVE_TABLE, this._on_removeTable));
+    this._document_observers.push(this.worksheet.observe(Worksheet.ADD_TABLE, this._on_addTable));
+    this._document_observers.push(this.worksheet.observe(Worksheet.REMOVE_TABLE, this._on_removeTable));
 
-    for (let table of this.document.tables) {
+    for (let table of this.worksheet.tables) {
       this._on_addTable(table);
     }
   }
@@ -61,9 +69,9 @@ class DocumentController {
   _on_addTable(table) {
     const tableController = new TableController(table);
     this.tableControllers.set(table, tableController);
-    tableController.observe(TABLE_CONTROLLER_EMPTY_BLUR, this._on_table_controller_empty_blur);
-    tableController.observe(TABLE_CONTROLLER_FOCUS, this._on_table_controller_focus);
-    tableController.observe(TABLE_CONTROLLER_BLUR, this._on_table_controller_blur);
+    tableController.observe(TableController.EMPTY_BLUR, this._on_table_controller_empty_blur);
+    tableController.observe(TableController.FOCUS, this._on_table_controller_focus);
+    tableController.observe(TableController.BLUR, this._on_table_controller_blur);
     this.tableContainer.appendChild(tableController.element);
     tableController.focus();
   }
@@ -88,12 +96,12 @@ class DocumentController {
     if (evt.target === this.tableContainer) {
       console.log(evt);
       if (evt.buttons === CREATE_TABLE_BUTTON) {
-        const emSize = getEmSize(this.tableContainer);
+        const emSize = libview.getEmSize(this.tableContainer);
         const em_x = Math.round(evt.offsetX / emSize);
         const em_y = Math.round(evt.offsetY / emSize);
         const newTable = new Table();
         newTable.position = [em_x, em_y];
-        this.document.addTable(newTable);
+        this.worksheet.addTable(newTable);
       }
     }
   }
@@ -137,4 +145,4 @@ class DocumentController {
       }
     }
   }
-}
+};

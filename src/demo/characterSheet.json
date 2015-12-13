@@ -1,0 +1,25 @@
+{
+  "tables": [
+    {
+      "position": [5, 5],
+      "columns": [
+        { "width": 6 },
+        { "width": 4 },
+        { "width": 4 },
+        { "width": 4 },
+        { "width": 4 },
+        { "width": 4 }
+      ],
+      "data": [
+        [{"value": "Attributes"}, {"value": "Base"}, {"value": "Racial"},
+         {"value": "Misc"}, {"value": "Total"}, {"value": "Mod" }],
+        [{"value": "STR"}, {"value": 13}, {"value": 0}, {"value": 0}, {"value": 15}, {"value": 1}],
+        [{"value": "DEX"}, {"value": 17}, {"value": 0}, {"value": 1}, {"value": 18}, {"value": 4}],
+        [{"value": "CON"}, {"value": 13}, {"value": 0}, {"value": 1}, {"value": 14}, {"value": 2}],
+        [{"value": "INT"}, {"value": 18}, {"value": 2}, {"value": 0}, {"value": 20}, {"value": 5}],
+        [{"value": "WIS"}, {"value": 13}, {"value": 0}, {"value": 0}, {"value": 13}, {"value": 1}],
+        [{"value": "CHA"}, {"value": 10}, {"value": 0}, {"value": 0}, {"value": 10}, {"value": 0}]
+      ]
+    }
+  ]
+}

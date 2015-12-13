@@ -18,8 +18,8 @@ xdescribe('kspreadsheet', ()=>{
 
 
   beforeEach(()=>{
-    doc = new Document();
-    documentController = new DocumentController(doc);
+    doc = new Worksheet();
+    documentController = new WorksheetController(doc);
 
     // Set initial styles
     documentController.tableContainer.style.fontSize = EM_SIZE + 'px';

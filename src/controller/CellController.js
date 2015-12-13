@@ -1,28 +1,46 @@
 'use strict';
 
+const bindObservers = require('../util/bindObservers');
+const DiscreteDraggable = require('../view/DiscreteDraggable');
+const Dom = require('../util/Dom');
+const Observable = require('./../util/Observable');
+const KeyCodes = require('./../KeyCodes');
+const Cell = require('../model/Cell');
+const Column = require('../model/Column');
+
 const COLUMN_RESIZE_BUTTON = 1;
 
-const NORTH = Symbol('NORTH');
-const SOUTH = Symbol('SOUTH');
-const EAST = Symbol('EAST');
-const WEST = Symbol('WEST');
-const PREVIOUS = Symbol('PREVIOUS');
-const NEWLINE = Symbol('NEWLINE');
+const NORTH = Symbol('CellController.NORTH');
+const SOUTH = Symbol('CellController.SOUTH');
+const EAST = Symbol('CellController.EAST');
+const WEST = Symbol('CellController.WEST');
+const PREVIOUS = Symbol('CellController.PREVIOUS');
+const NEWLINE = Symbol('CellController.NEWLINE');
+const FOCUS = Symbol('CellController.FOCUS');
+const BLUR = Symbol('CellController.BLUR');
 
-const CELL_CONTROLLER_FOCUS = Symbol('CELL_CONTROLLER_FOCUS');
-const CELL_CONTROLLER_BLUR = Symbol('CELL_CONTROLLER_BLUR');
-
+module.exports =
 class CellController extends Observable {
+
+  static get NORTH () { return NORTH; }
+  static get SOUTH () { return SOUTH; }
+  static get EAST () { return EAST; }
+  static get WEST () { return WEST; }
+  static get PREVIOUS () { return PREVIOUS; }
+  static get NEWLINE () { return NEWLINE; }
+  static get FOCUS () { return FOCUS; }
+  static get BLUR () { return BLUR; }
+
   constructor (cell, column) {
     super([
-      CELL_CONTROLLER_FOCUS,
-      CELL_CONTROLLER_BLUR,
-      NORTH,
-      SOUTH,
-      EAST,
-      WEST,
-      PREVIOUS,
-      NEWLINE,
+      CellController.FOCUS,
+      CellController.BLUR,
+      CellController.NORTH,
+      CellController.SOUTH,
+      CellController.EAST,
+      CellController.WEST,
+      CellController.PREVIOUS,
+      CellController.NEWLINE,
     ]);
     bindObservers(this);
 
@@ -55,7 +73,7 @@ class CellController extends Observable {
     this._cell = _;
 
     if (this.cell) {
-      this._model_observers.push(this.cell.observe(CELL_VALUE, this._on_value));
+      this._model_observers.push(this.cell.observe(Cell.VALUE, this._on_value));
     }
 
     this._on_value();
@@ -69,7 +87,7 @@ class CellController extends Observable {
     this._column = _;
 
     if (this.column) {
-      this._column_observers.push(this.column.observe(COLUMN_WIDTH, this._on_width));
+      this._column_observers.push(this.column.observe(Column.WIDTH, this._on_width));
     }
 
     this._on_width();
@@ -97,30 +115,30 @@ class CellController extends Observable {
 
   _on_key_down (evt) {
     switch (evt.keyCode) {
-      case ENTER_KEY_CODE:
+      case KeyCodes.ENTER:
         evt.preventDefault();
         this.notify(evt.shiftKey ? NORTH : NEWLINE, this);
         break;
-      case TAB_KEY_CODE:
+      case KeyCodes.TAB:
         evt.preventDefault();
         this.notify(evt.shiftKey ? PREVIOUS : EAST, this);
         break;
-      case UP_KEY_CODE:
+      case KeyCodes.UP:
         evt.preventDefault();
         this.notify(NORTH, this);
         break;
-      case DOWN_KEY_CODE:
+      case KeyCodes.DOWN:
         evt.preventDefault();
         this.notify(SOUTH, this);
         break;
-      case RIGHT_KEY_CODE:
+      case KeyCodes.RIGHT:
         if (this.inputElement.selectionStart === this.inputElement.value.length && 
             this.inputElement.selectionEnd === this.inputElement.value.length) {
           evt.preventDefault();
           this.notify(EAST, this)
         }
         break;
-      case LEFT_KEY_CODE:
+      case KeyCodes.LEFT:
         if (this.inputElement.selectionStart === 0 && 
             this.inputElement.selectionEnd === 0) {
           evt.preventDefault();
@@ -131,10 +149,10 @@ class CellController extends Observable {
   }
 
   _on_focus (evt) {
-    this.notify(CELL_CONTROLLER_FOCUS, this);
+    this.notify(CellController.FOCUS, this);
   }
 
   _on_blur (evt) {
-    //this.notify(CELL_CONTROLLER_BLUR, this)
+    //this.notify(CellController.BLUR, this)
   }
 }
