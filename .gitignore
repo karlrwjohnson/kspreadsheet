@@ -1,4 +1,6 @@
-.nwjs
-.node
+nwjs
+node
 .idea
 node_modules
+chromedriver
+selenium-server-standalone-*.jar

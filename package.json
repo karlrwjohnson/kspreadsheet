@@ -10,7 +10,8 @@
 
   "license": "UNLICENSED",
   "dependencies": {
-    "jasmine-core": "2.4.1"
+    "jasmine-core": "2.4.1",
+    "webdriverio": "3.3.0"
   },
 
   "repository": {

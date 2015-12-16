@@ -5,6 +5,9 @@ const path = require('path');
 const util = require('util');
 const vm = require('vm');
 
+const Fn = require('./src/util/Fn');
+const Filesystem = require('./src/util/Filesystem');
+
 const jasmine = require('jasmine-core/lib/jasmine-core/jasmine');
 
 const SRC_ROOT = './src';
@@ -84,6 +87,7 @@ jasmineEnv.addReporter({
           (expectedRepr.indexOf('\n') >= 0 ?
             ':\n     ' + expectedRepr.replace(/\n/g, '\n     ') :
             ' ' + expectedRepr));
+        console.log(failure.stack);
       }
       console.log(spec);
     }
@@ -93,6 +97,10 @@ jasmineEnv.addReporter({
   },
 });
 
+
+/**
+ * Generator which searches
+ */
 function * getSpecs (pathname) {
   try {
     for (let filename of fs.readdirSync(pathname)) {
@@ -133,29 +141,32 @@ let currentPath = '.';
 
 const sandboxObject = Object.create(global);
 
-sandboxObject.require = function(requirePath) {
+sandboxObject.require = function fakeRequire(requirePath) {
   const newPath = './' + path.join(currentPath, requirePath);
-  console.log(currentPath + ' + ' + requirePath + ' -> ' + newPath);
   return require(newPath);
+};
+sandboxObject.require.resolve = function fakeResolve(resolvePath) {
+  return require.resolve('./' + path.join(currentPath, resolvePath));
 };
 sandboxObject.jasmine = jasmineCore;
 
 for (let property in jasmineEnv) {
+  //noinspection JSUnfilteredForInLoop
   sandboxObject[property] = jasmineEnv[property];
 }
 
 const excludePaths = new Set([
-  'src/model/test/TableSpec.js',
+  //'src/model/test/TableSpec.js',
 ]);
 
-for (let specPath of getSpecs(SRC_ROOT)) {
+for (let specPath of Filesystem.find(SRC_ROOT, name => name.endsWith('Spec.js'))) {
   if (!excludePaths.has(specPath)) {
     currentPath = path.dirname(specPath);
     vm.runInNewContext(
       fs.readFileSync(specPath),  // code
       Object.create(sandboxObject),   // context
       {                           // options
-        filename: specPath,
+        filename: require.resolve('./' + specPath),
       }
     );
   }

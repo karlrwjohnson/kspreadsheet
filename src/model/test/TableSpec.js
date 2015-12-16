@@ -1,41 +1,48 @@
 'use strict';
 
+const injectRequire = require('../../util/injectRequire');
 const Cell = require('../Cell');
 const Column = require('../Column');
-const Table = require('../Table');
+const Fn = require('../../util/Fn');
+const OutOfBoundsException = require('../../OutOfBoundsException');
 
-describe('Table', ()=>{
-  //let MockCell;
-  //let MockColumn;
-  let Table_;
+fdescribe('Table', ()=>{
   let table;
+
+  let CellCtorSpy;
+  let ColumnCtorSpy;
 
   class MockCell extends Cell {
     constructor (...args) {
+      CellCtorSpy(...args);
       super(...args);
     }
   }
   class MockColumn extends Column {
     constructor (...args) {
+      ColumnCtorSpy(...args);
       super(...args);
     }
   }
+
+  const Table = injectRequire('../Table', {
+    '../Cell': MockCell,
+    '../Column': MockColumn,
+  });
 
   function getValuesAsArray(table) {
     return table.data.map(row => row.map(cell => cell.value));
   }
 
   beforeEach(() => {
-    Table_ = inject(Table, {
-      Cell: MockCell,
-      Column: MockColumn,
-    });
+    CellCtorSpy = jasmine.createSpy('Cell');
+    ColumnCtorSpy = jasmine.createSpy('Column');
 
-    table = new Table_();
-  })
+    table = new Table();
+  });
 
   it('should initialize with default values', ()=>{
-    const table = new Table_();
+    const table = new Table();
     expect(table.toJSON()).toEqual({
       position: [0, 0],
       columns: [{width: 10}],
@@ -48,7 +55,7 @@ describe('Table', ()=>{
     const columnJson = [{width: 4}, {width: 8}];
     const cellJson = [[{value: 'a'}, {value: 'b'}],
                       [{value: 'c'}, {value: 'c'}]];
-    table = new Table_({
+    table = new Table({
       position: [3, 5],
       columns: columnJson,
       data: cellJson,
@@ -78,7 +85,7 @@ describe('Table', ()=>{
 
   it('should notify observers when its position changes', ()=>{
     const on_position = jasmine.createSpy('on_position');
-    table.observe(TABLE_POSITION, on_position);
+    table.observe(Table.POSITION, on_position);
     table.position = [4, 6];
     expect(on_position).toHaveBeenCalled();
   });
@@ -131,7 +138,7 @@ describe('Table', ()=>{
 
   it('should send a notification when the rows are changed', ()=>{
     const on_spliceRows = jasmine.createSpy('on_spliceRows');
-    table.observe(TABLE_SPLICE_ROWS, on_spliceRows);
+    table.observe(Table.SPLICE_ROWS, on_spliceRows);
     table.spliceRows(1, 1, 0);
     expect(on_spliceRows).toHaveBeenCalledWith(jasmine.objectContaining({
       index: 1,
@@ -183,7 +190,7 @@ describe('Table', ()=>{
 
   it('should send a notification when the columns are changed', ()=>{
     const on_spliceColumns = jasmine.createSpy('on_spliceColumns');
-    table.observe(TABLE_SPLICE_COLUMNS, on_spliceColumns);
+    table.observe(Table.SPLICE_COLUMNS, on_spliceColumns);
     table.spliceColumns(1, 1, 0);
     expect(on_spliceColumns).toHaveBeenCalledWith(jasmine.objectContaining({
       index: 1,
