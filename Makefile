@@ -69,12 +69,17 @@ test: unittest
 
 .PHONY: unittest
 unittest: node node_modules
-	node/bin/node $(NODE_FLAGS) init-jasmine.js
+	node/bin/node $(NODE_FLAGS) unit-test.js
+
+.PHONY: uitest
+uitest: node nwjs chromedriver node_modules
+	node/bin/node $(NODE_FLAGS) ui-test.js
 
 .PHONY: clean
 clean:
 	rm -rvf node nwjs chromedriver node_modules selenium-server-standalone-*.jar
 
+.PHONY: run-selenium
 run-selenium:
 	java -jar selenium-server-standalone-2.48.2.jar -Dwebdriver.chrome.driver=./chromedriver
 

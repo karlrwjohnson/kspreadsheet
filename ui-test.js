@@ -26,10 +26,5 @@ const options = {
 };
 
 const client = webdriverio.remote(options);
-
 client.init();
 
-process.stdin.once('data', () => {
-  console.log('ok');
-  client.end();
-});
