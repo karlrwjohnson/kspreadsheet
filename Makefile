@@ -1,5 +1,20 @@
 # Makefile for KSpreadsheet
 
+ifeq ($(OS), Windows_NT)
+	NW_PLATFORM       = win-x64
+	NW_PLATFORM_EXT   = zip
+	NODE_PLATFORM     = win-x64
+	NODE_PLATFORM     = zip
+    
+    DOWNLOAD          = cscript bootstrapping\download.js
+    UNZIP             = cscript bootstrapping\cp.js
+else
+	NW_PLATFORM       = linux-x64
+	NW_PLATFORM_EXT   = tar.gz
+	NODE_PLATFORM     = linux-x64
+	NODE_PLATFORM_EXT = tar.gz
+endif
+
 NW_PLATFORM       = linux-x64
 NW_PLATFORM_EXT   = tar.gz
 NODE_PLATFORM     = linux-x64
@@ -42,8 +57,14 @@ node:
 
 # NW, formerly known as node-webkit
 nwjs:
+ifeq ($(OS), Windows_NT)
+	$(DOWNLOAD) $(NW_SOURCE_URL) $(NW_BASENAME).$(NW_PLATFORM_EXT)
+	$(UNZIP) $(NW_BASENAME).$(NW_PLATFORM_EXT)\$(NW_BASENAME) nwjs
+	del $(NW_BASENAME).$(NW_PLATFORM_EXT)
+else
 	curl $(NW_SOURCE_URL) | tar xz
 	mv $(NW_BASENAME) nwjs
+endif
 
 chromedriver:
 	curl $(NW_DRIVER_SOURCE_URL) | tar xz --wildcards --to-stdout */chromedriver > chromedriver
