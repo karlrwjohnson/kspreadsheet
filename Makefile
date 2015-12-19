@@ -15,11 +15,6 @@ else
 	NODE_PLATFORM_EXT = tar.gz
 endif
 
-NW_PLATFORM       = linux-x64
-NW_PLATFORM_EXT   = tar.gz
-NODE_PLATFORM     = linux-x64
-NODE_PLATFORM_EXT = tar.gz
-
 # (From https://github.com/nwjs/nw.js/wiki/Build-Flavors)
 # Since 0.12.0, NW.js supports multiple build flavors, such as Mac App Store
 # (MAS), Native Client (NaCl), SDK and normal builds.
@@ -52,8 +47,14 @@ SELENIUM_SOURCE_URL      = $(SELENIUM_DOWNLOAD_SERVER)/$(basename $(SELENIUM_VER
 
 # NodeJS
 node:
+ifeq ($(OS), Windows_NT)
+	$(DOWNLOAD) $(NODE_SOURCE_URL) $(NODE_BASENAME).$(NODE_PLATFORM_EXT)
+	$(UNZIP) $(NODE_BASENAME).$(NODE_PLATFORM_EXT)\$(NODE_BASENAME) nwjs
+	del $(NODE_BASENAME).$(NODE_PLATFORM_EXT)
+else
 	curl $(NODE_SOURCE_URL) | tar xz
-	mv $(NODE_BASENAME) node
+	mv $(NODE_BASENAME) nwjs
+endif
 
 # NW, formerly known as node-webkit
 nwjs:
@@ -67,7 +68,13 @@ else
 endif
 
 chromedriver:
+ifeq ($(OS), Windows_NT)
+	$(DOWNLOAD) $(NW_DRIVER_SOURCE_URL) $(NW_DRIVER_BASENAME).$(NW_PLATFORM_EXT)
+	$(UNZIP) $(NW_DRIVER_BASENAME).$(NW_PLATFORM_EXT)\$(NW_DRIVER_BASENAME)\chromedriver.exe chromedriver.exe
+	del $(NW_DRIVER_BASENAME).$(NW_PLATFORM_EXT)
+else
 	curl $(NW_DRIVER_SOURCE_URL) | tar xz --wildcards --to-stdout */chromedriver > chromedriver
+endif
 
 # NPM module: Jasmine (unit testing)
 node_modules: node package.json
