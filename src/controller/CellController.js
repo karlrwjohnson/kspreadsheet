@@ -155,4 +155,4 @@ class CellController extends Observable {
   _on_blur (evt) {
     //this.notify(CellController.BLUR, this)
   }
-}
+};
