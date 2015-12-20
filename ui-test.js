@@ -1,6 +1,7 @@
 'use strict';
 
 const webdriverio = require('webdriverio');
+const JasmineRunner = require('./JasmineRunner');
 
 const options = {
   desiredCapabilities: {
@@ -26,5 +27,32 @@ const options = {
 };
 
 const client = webdriverio.remote(options);
-client.init();
 
+module.exports = Object.freeze({
+  client: client,
+
+  anyKey () {
+    console.log('*** Press any key to continue ***');
+    return new Promise((resolve, reject) => {
+      process.stdin.once('data', (data) => resolve(data));
+    });
+  }
+});
+
+//JasmineRunner.jasmineEnv.beforeEach(() => {
+//  client.init();
+//});
+//
+//JasmineRunner.jasmineEnv.afterEach(() => {
+//  client.end();
+//});
+
+//JasmineRunner.jasmineCore.DEFAULT_TIMEOUT_INTERVAL = 10000;
+JasmineRunner.jasmineCore.DEFAULT_TIMEOUT_INTERVAL = 10000000;
+
+//JasmineRunner.run('./uitest');
+
+client.init().elements('input').then((...args) => {
+  client.init().element(
+  debugger;
+});

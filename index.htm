@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <link rel='stylesheet' href='styles-main.css' />
-  <link href='https://fonts.googleapis.com/css?family=Roboto+Slab' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Roboto+Slab' rel='stylesheet' type='text/css' />
+
+  <title>KSpreadsheet</title>
 </head>
 <body>
   <p>Hello</p>
@@ -28,7 +30,7 @@
   var nw;
 
   //noinspection JSUnresolvedFunction,JSUnresolvedVariable
-  nw.Window.get().showDevTools();
+  //nw.Window.get().showDevTools();
 
   nw.path = nw.require('path');
   const require = nw.root.endsWith('/nwjs/resources/nwjs_default_app') ?
