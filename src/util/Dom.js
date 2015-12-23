@@ -1,56 +1,34 @@
 'use strict';
 
 const Fn = require('./Fn');
-
-let document = null;
-let HTMLElement = null;
+const GUIWindow = require('./GUIWindow');
 
 function domFactoryFactory (elementName) {
   return function domFactory () {
-    if (document === null) {
-      throw Error('Dom library has not been initialized with a document ' +
-        'object. Please assign one to the "document" property.');
-    }
-    else {
-      const args = arguments;
-      const element = document.createElement(elementName);
-      for (let arg of args) {
-        if (arg instanceof HTMLElement) {
-          element.appendChild(arg);
-        }
-        else if (typeof arg === 'object') {
-          for (let attr in arg) {
-            //noinspection JSUnfilteredForInLoop - user might want to use inheritance
-            element.setAttribute(attr, arg[attr]);
-          }
-        }
-        else if (typeof arg === 'string') {
-          element.appendChild(document.createTextNode(arg));
-        }
-        else {
-          throw Error(`Unknown argument type ${arg}`)
+    const args = arguments;
+    const element = GUIWindow.require('document').createElement(elementName);
+    for (let arg of args) {
+      if (arg instanceof GUIWindow.require('HTMLElement')) {
+        element.appendChild(arg);
+      }
+      else if (typeof arg === 'object') {
+        for (let attr in arg) {
+          //noinspection JSUnfilteredForInLoop - user might want to use inheritance
+          element.setAttribute(attr, arg[attr]);
         }
       }
-      return element;
+      else if (typeof arg === 'string') {
+        element.appendChild(GUIWindow.require('document').createTextNode(arg));
+      }
+      else {
+        throw Error(`Unknown argument type ${arg}`)
+      }
     }
+    return element;
   }
 }
 
 module.exports = Object.freeze({
-  get document () {
-    return document;
-  },
-  set document (_document) {
-    document = _document;
-
-    HTMLElement = Fn.first(
-      Fn.filter(
-        Fn.getConstructors(document.createElement('div')),
-        ctor => ctor.name === 'HTMLElement'
-      )
-    ).orElseThrow(new Error('Cannot produce a HTMLElement class from document object'));
-  },
-
   a        : domFactoryFactory('a'),
   aside    : domFactoryFactory('aside'),
   button   : domFactoryFactory('button'),

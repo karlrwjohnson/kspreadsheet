@@ -42,15 +42,12 @@
       } :
       nw.require;
 
-  require('./src/util/globalsBugWorkaround')(window);
+  require('./src/util/GUIWindow').window = window;
 
   // Imports
   const Dom = require('./src/util/Dom');
   const Worksheet = require('./src/model/Worksheet');
   const WorksheetController = require('./src/controller/WorksheetController');
-
-  // Initialize DOM helper module
-  Dom.document = document;
 
   // Globals
   const doc = new Worksheet();
@@ -77,12 +74,6 @@
       instructionPane
     )
   );
-
-  function demo () {
-    worksheetController.worksheet = new Worksheet(require('./src/demo/characterSheet.json'));
-  }
-
-  demo();
 
   console.log('ok');
 

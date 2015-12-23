@@ -61,6 +61,9 @@ class TableController extends Observable {
     // Remove old DOM
     Dom.removeChildren(this.rowContainer);
 
+    // Reset focus
+    this.focusedCellController = null;
+
     this._model = _;
 
     // Create DOM for rows

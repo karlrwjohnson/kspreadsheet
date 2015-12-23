@@ -2,6 +2,9 @@
 
 const bindObservers = require('../util/bindObservers');
 const Dom = require('../util/Dom');
+const FileLoader = require('./FileLoader');
+const Fn = require('../util/Fn');
+const GUIWindow = require('../util/GUIWindow');
 const libview = require('../util/libview');
 const Worksheet = require('../model/Worksheet');
 const Table = require('../model/Table');
@@ -18,9 +21,14 @@ class WorksheetController {
     this.tableControllers = new Map();
     this._focusedTable = null;
 
-    this._document_observers = [];
+    this._worksheet_observers = [];
+
+    this._fileLoader = new FileLoader();
+
     this.element = Dom.div({'class': 'worksheet-root flex-column flex-grow'},
       this.toolbarContainer = Dom.nav({'class': 'toolbar'},
+        this._fileLoader.element,
+        this.openWorksheetButton = Dom.button('Open'),
         this.deleteTableButton = Dom.button('Delete Table'),
         this.insertColumnButton = Dom.button({title: 'Insert Column'}, Dom.img({href: 'img/insertColumn.svg'}), 'Insert Column'),
         this.deleteColumnButton = Dom.button({title: 'Delete Column'}, Dom.img({href: 'img/deleteColumn.svg'}), 'Delete Column'),
@@ -29,6 +37,17 @@ class WorksheetController {
       ),
       this.tableContainer = Dom.div({'class': 'worksheet flex-grow'})
     );
+
+    this.openWorksheetButton.addEventListener('click', () => {
+      this._fileLoader.prompt()
+        .then(spec => {
+          console.log('got ', spec);
+          this.worksheet = new Worksheet(spec) })
+        .catch(e => {
+          console.error(e);
+          GUIWindow.require('alert')(e.message);
+        });
+    });
 
     this.tableContainer.addEventListener('click', this._on_click);
     this.tableContainer.addEventListener('dblclick', this._on_dbl_click);
@@ -47,19 +66,27 @@ class WorksheetController {
   }
 
   get worksheet () {
-    return this._document;
+    return this._worksheet;
   }
 
   set worksheet (_) {
     let observer;
-    while ((observer = this._document_observers.pop())) {
+    while ((observer = this._worksheet_observers.pop())) {
       observer.cancel();
     }
 
-    this._document = _;
+    if (this._worksheet) {
+      for (let table of this._worksheet.tables) {
+        this._on_removeTable(table);
+      }
+    }
 
-    this._document_observers.push(this.worksheet.observe(Worksheet.ADD_TABLE, this._on_addTable));
-    this._document_observers.push(this.worksheet.observe(Worksheet.REMOVE_TABLE, this._on_removeTable));
+    this.focusedTable = null;
+
+    this._worksheet = _;
+
+    this._worksheet_observers.push(this.worksheet.observe(Worksheet.ADD_TABLE, this._on_addTable));
+    this._worksheet_observers.push(this.worksheet.observe(Worksheet.REMOVE_TABLE, this._on_removeTable));
 
     for (let table of this.worksheet.tables) {
       this._on_addTable(table);

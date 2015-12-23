@@ -78,40 +78,77 @@ module.exports = Object.freeze({
     return Array.from(new Array(n), (_, i) => fn(i));
   },
   * filter (iterable, filterFn) {
-    let i = 0;
-    for (let x of iterable) {
-      if (filterFn(x, i)) {
-        yield x;
+    if (Symbol.iterator in iterable) {
+      let i = 0;
+      for (let x of iterable) {
+        if (filterFn(x, i)) {
+          yield x;
+        }
+        i++;
       }
-      i++;
     }
+    else if ('length' in iterable) {
+      for (let i = 0; i < iterable.length; i++) {
+        const x = iterable[i];
+        if (filterFn(x, i)) {
+          yield x;
+        }
+      }
+    }
+    else throw new TypeError(`Object ${iterable} is not iterable`);
   },
   * map (iterable, mapFn) {
-    let i = 0;
-    for (let x of iterable) {
-      yield mapFn(x, i);
-      i++;
+    if (Symbol.iterator in iterable) {
+      let i = 0;
+      for (let x of iterable) {
+        yield mapFn(x, i, iterable);
+        i++;
+      }
+    }
+    else if ('length' in iterable) {
+      for (let i = 0; i < iterable.length; i++) {
+        const x = iterable[i];
+        yield mapFn(x, i, iterable);
+      }
+    }
+    else throw new TypeError(`Object ${iterable} is not iterable`);
+  },
+  forEach (iterable, fn) {
+    //noinspection JSUnusedLocalSymbols
+    for (let unused of this.map(iterable, fn)) {
+      // no op
     }
   },
   first (iterable) {
-    //noinspection LoopStatementThatDoesntLoopJS
-    for (let x of iterable) {
+    // Iterator protocol
+    if (Symbol.iterator in iterable) {
       // It is not a bug that this for loop returns immediately.
       // It's a lazy way to get the first element of the iterator
-      return Optional.of(x);
+      //noinspection LoopStatementThatDoesntLoopJS
+      for (let x of iterable) {
+        return Optional.of(x);
+      }
+      return Optional.ofNull();
     }
-    return Optional.ofNull();
+    // Array-like objects
+    else if (0 in iterable) {
+      return Optional.of(iterable[0]);
+    }
+    else throw new TypeError(`Object ${iterable} is not iterable`);
   },
 
   last (iterable) {
-    if ('slice' in iterable) {
-      return Optional.ofNullable(iterable.slice(-1)[0]);
+    // Arrays and array-like objects
+    if ('length' in iterable) {
+      return Optional.ofNullable(iterable[iterable.length - 1]);
     }
-    else {
+    // Generators and custom iterators
+    else if (Symbol.iterator in iterable) {
       let x;
       for (x of iterable) {}
       return Optional.ofNullable(x);
     }
+    else throw new TypeError(`Object ${iterable} is not iterable`);
   },
 
   /**

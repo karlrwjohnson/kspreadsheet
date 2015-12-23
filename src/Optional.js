@@ -57,4 +57,12 @@ class Optional {
   }
 }
 
+Object.defineProperty(Optional.prototype, Symbol.iterator, {
+  value: function * Optional_iterator_impl () {
+    if (this.has()) {
+     yield this.get();
+    }
+  }
+});
+
 module.exports = Optional;
