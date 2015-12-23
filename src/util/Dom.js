@@ -44,6 +44,7 @@ module.exports = Object.freeze({
   h6       : domFactoryFactory('h6'),
   h7       : domFactoryFactory('h7'),
   header   : domFactoryFactory('header'),
+  hr       : domFactoryFactory('hr'),
   img      : domFactoryFactory('img'),
   input    : domFactoryFactory('input'),
   li       : domFactoryFactory('li'),

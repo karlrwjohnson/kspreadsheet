@@ -26,16 +26,18 @@ class WorksheetController {
     this._fileLoader = new FileLoader();
 
     this.element = Dom.div({'class': 'worksheet-root flex-column flex-grow'},
-      this.toolbarContainer = Dom.nav({'class': 'toolbar'},
+      Dom.div({'class': 'toolbar'},
         this._fileLoader.element,
-        this.openWorksheetButton = Dom.button('Open'),
-        this.deleteTableButton = Dom.button('Delete Table'),
-        this.insertColumnButton = Dom.button({title: 'Insert Column'}, Dom.img({href: 'img/insertColumn.svg'}), 'Insert Column'),
-        this.deleteColumnButton = Dom.button({title: 'Delete Column'}, Dom.img({href: 'img/deleteColumn.svg'}), 'Delete Column'),
-        this.insertRowButton = Dom.button({title: 'Insert Row'}, Dom.img({href: 'img/insertRow.svg'}), 'Insert Row'),
-        this.deleteRowButton = Dom.button({title: 'Delete Row'}, Dom.img({href: 'img/deleteRow.svg'}), 'Delete Row')
+        this.openWorksheetButton = Dom.button({id: 'openWorksheet', class: 'toolbarButton', title: 'Open Worksheet', }, Dom.img({src: 'img/open.svg'})),
+        Dom.hr(),
+        this.deleteTableButton   = Dom.button({id: 'deleteTable',   class: 'toolbarButton', title: 'Delete Table',   }, Dom.img({src: 'img/deleteTable.svg'})),
+        Dom.hr(),
+        this.insertColumnButton  = Dom.button({id: 'insertColumn',  class: 'toolbarButton', title: 'Insert Column',  }, Dom.img({src: 'img/insertColumn.svg'})),
+        this.insertRowButton     = Dom.button({id: 'insertRow',     class: 'toolbarButton', title: 'Insert Row',     }, Dom.img({src: 'img/insertRow.svg'})),
+        this.deleteColumnButton  = Dom.button({id: 'deleteColumn',  class: 'toolbarButton', title: 'Delete Column',  }, Dom.img({src: 'img/deleteColumn.svg'})),
+        this.deleteRowButton     = Dom.button({id: 'deleteRow',     class: 'toolbarButton', title: 'Delete Row',     }, Dom.img({src: 'img/deleteRow.svg'}))
       ),
-      this.tableContainer = Dom.div({'class': 'worksheet flex-grow'})
+      this.tableContainer = Dom.div({id: 'tableContainer', 'class': 'worksheet flex-grow'})
     );
 
     this.openWorksheetButton.addEventListener('click', () => {

@@ -214,3 +214,36 @@ aside {
     width:100%;
   }
 }
+
+.toolbar {
+  margin: 4px;
+  display:flex;
+  flex-direction: row;
+}
+
+.toolbar hr {
+  height:auto;
+  width:1px;
+  border:none;
+  display:inline-block;
+  margin:0;
+  background: linear-gradient(to bottom, #999, #666);
+}
+
+.toolbarButton {
+  background:none;
+  border:none;
+  padding:0;
+  margin:0 4px;
+  display:inline-block;
+}
+.toolbarButton[disabled] img {
+  -webkit-filter: saturate(30%) contrast(0.667) brightness(1.5);
+}
+.toolbarButton:hover:not(*[disabled]) {
+  cursor:pointer;
+}
+.toolbarButton:hover:not(*[disabled]) img {
+  -webkit-filter: contrast(0.8) brightness(1.25);
+  cursor:pointer;
+}
