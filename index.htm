@@ -29,10 +29,11 @@
       } :
       nw.require;
 
+  // Configure workaround for bug where imported modules don't execute in the
+  // same context
   require('./src/util/GUIWindow').window = window;
 
   // Imports
-  const Dom = require('./src/util/Dom');
   const ApplicationController = require('./src/controller/ApplicationController');
 
   // Globals
