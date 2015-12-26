@@ -40,11 +40,12 @@ class TableController extends Observable {
       this.rowContainer = Dom.tbody()
     );
 
+    this.element.addEventListener('dblclick', this._on_dblclick);
+
     new DiscreteDraggable(this.element, TABLE_MOVE_BUTTON,
         (dx, dy) => this.model.position = Vec.add(this.model.position, [dx, dy]));
 
     this.model = model;
-
   }
 
   get model () {
@@ -104,6 +105,10 @@ class TableController extends Observable {
     cellController.observe(CellController.FOCUS, this._on_cell_controller_focus);
     cellController.observe(CellController.BLUR, this._on_cell_controller_blur);
     return cellController;
+  }
+
+  _on_dblclick (evt) {
+    evt.stopPropagation();
   }
 
   _on_position () {

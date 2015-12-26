@@ -4,8 +4,6 @@
   top:0;      left:0;
   bottom:0;   right:0;
   position: fixed;
-  display: flex;
-  flex-direction: row;
   font-family: 'Roboto Slab', serif;
 }
 .flex-row {
@@ -18,19 +16,6 @@
 }
 .flex-grow {
   flex-grow: 1;
-}
-header {
-  background: gray;
-  color: white;
-  padding: 1em;
-}
-header h1 {
-  margin: 0;
-}
-aside {
-  width:30em;
-  padding: 1em;
-  display: block;
 }
 
 .worksheet {
@@ -246,4 +231,27 @@ aside {
 .toolbarButton:hover:not(*[disabled]) img {
   -webkit-filter: contrast(0.8) brightness(1.25);
   cursor:pointer;
+}
+
+.fill-parent {
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:0;
+  right:0;
+}
+.vertically-center {
+  display:flex;
+  flex-direction: column;
+}
+.background-message {
+  width:50%;
+  text-align:center;
+  font-size:2em;
+  line-height:1.2em;
+  padding:0.5em 1em;
+  border-radius:0.5em;
+  margin:auto;
+  background:rgba(0,0,0,0.2);
+  color:white;
 }

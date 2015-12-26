@@ -52,7 +52,9 @@ JasmineRunner.jasmineCore.DEFAULT_TIMEOUT_INTERVAL = 10000000;
 
 //JasmineRunner.run('./uitest');
 
-client.init().elements('input').then((...args) => {
-  client.init().element(
+client.init().element('input').then((...args) => {
+
   debugger;
+  client.end();
 });
+

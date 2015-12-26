@@ -13,8 +13,16 @@ function domFactoryFactory (elementName) {
       }
       else if (typeof arg === 'object') {
         for (let attr in arg) {
-          //noinspection JSUnfilteredForInLoop - user might want to use inheritance
-          element.setAttribute(attr, arg[attr]);
+
+          // event handlers
+          if (typeof arg[attr] === 'function' && attr.startsWith('on')) {
+            element.addEventListener(attr.slice(2), arg[attr]);
+          }
+          // other properties
+          else {
+            //noinspection JSUnfilteredForInLoop
+            element.setAttribute(attr, arg[attr]);
+          }
         }
       }
       else if (typeof arg === 'string') {
