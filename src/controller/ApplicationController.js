@@ -37,6 +37,12 @@ class ApplicationController {
               GUIWindow.require('alert')(e.message);
             })
         }, Dom.img({src: 'img/open.svg'})),
+        Dom.button({
+          id: 'saveWorksheet',
+          class: 'toolbarButton',
+          title: 'Save Worksheet',
+          onclick: () => GUIWindow.require('alert')('not implemented'),
+        }, Dom.img({src: 'img/save.svg'})),
         Dom.hr(),
         this.deleteTable = Dom.button({
           id: 'deleteTable',

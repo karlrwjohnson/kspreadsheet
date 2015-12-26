@@ -1,3 +1,8 @@
+/* reset webkit default styles */
+:focus {
+  outline: none;
+}
+
 #app-root {
   /* Take up the entire screen */
   width:auto; height:auto;
@@ -211,7 +216,7 @@
   width:1px;
   border:none;
   display:inline-block;
-  margin:0;
+  margin:0 4px;
   background: linear-gradient(to bottom, #999, #666);
 }
 
