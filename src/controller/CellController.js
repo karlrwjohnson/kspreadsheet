@@ -1,6 +1,6 @@
 'use strict';
 
-const bindObservers = require('../util/bindObservers');
+const ObserverTools = require('../util/ObserverTools');
 const DiscreteDraggable = require('../view/DiscreteDraggable');
 const Dom = require('../util/Dom');
 const Observable = require('./../util/Observable');
@@ -42,13 +42,12 @@ class CellController extends Observable {
       CellController.PREVIOUS,
       CellController.NEWLINE,
     ]);
-    bindObservers(this);
+    ObserverTools.autoBindCallbacks(this);
 
     this._model_observers = [];
     this._column_observers = [];
-    this._updating_model = false;
     this.element = Dom.td(
-      this.inputElement = Dom.input({type:'text', value:'hello'})
+      this.inputElement = Dom.input({type:'text'})
     );
 
     this.element.controller = this;
@@ -68,21 +67,32 @@ class CellController extends Observable {
   get cell () { return this._cell; }
 
   set cell (_) {
-    this._model_observers.splice(0, Infinity).forEach(observer => observer.cancel());
+    if (_ === undefined) {
+      throw new Error('Undefined cell');
+    }
+
+    for (let observer of this._model_observers.splice(0, Infinity)) {
+      observer.cancel();
+    }
 
     this._cell = _;
 
     if (this.cell) {
-      this._model_observers.push(this.cell.observe(Cell.VALUE, this._on_value));
+      this._model_observers.push(this.cell.observe(Cell.VALUE, this._on_cell_value));
+      this._model_observers.push(this.cell.observe(Cell.FORMULA, this._on_cell_formula));
+      this._model_observers.push(this.cell.observe(Cell.FORMULA_BAD, this._on_cell_formula_bad));
+      this._model_observers.push(this.cell.observe(Cell.FORMULA_OK, this._on_cell_formula_ok));
     }
 
-    this._on_value();
+    this._on_cell_value();
   }
 
   get column () { return this._column; }
 
   set column (_) {
-    this._column_observers.splice(0, Infinity).forEach(observer => observer.cancel());
+    for (let observer of this._column_observers.splice(0, Infinity)) {
+      observer.cancel();
+    }
 
     this._column = _;
 
@@ -93,20 +103,27 @@ class CellController extends Observable {
     this._on_width();
   }
 
-  focus () {
-    this.inputElement.select();
+  get focused () {
+    return this.inputElement.ownerDocument.activeElement === this.inputElement;
   }
 
-  _on_value () {
-    if (!this._updating_model) {
-      this.inputElement.value = this.cell.value;
+  set focused (_) {
+    if (_) {
+      this.inputElement.select();
+      this._on_focus();
+    }
+    else {
+      this.inputElement.blur();
+      this._on_blur();
     }
   }
 
   _on_element_change () {
-    this._updating_model = true;
-    this.cell.value = this.inputElement.value;
-    this._updating_model = false;
+    if (this.inputElement.value.startsWith('=')) {
+      this.cell.formula = this.inputElement.value.slice(1);
+    } else {
+      this.cell.value = this.inputElement.value;
+    }
   }
 
   _on_width () {
@@ -149,10 +166,52 @@ class CellController extends Observable {
   }
 
   _on_focus (evt) {
+    switch (this.cell.mode) {
+      case Cell.VALUE:
+        break;
+      case Cell.FORMULA:
+        this.inputElement.value = '=' + this.cell.formula;
+        break;
+      default:
+        throw new Error('Unhandled mode');
+    }
     this.notify(CellController.FOCUS, this);
   }
 
   _on_blur (evt) {
+    switch (this.cell.mode) {
+      case Cell.VALUE:
+        break;
+      case Cell.FORMULA:
+        this.inputElement.value = this.cell.value;
+        break;
+      default:
+        throw new Error('Unhandled mode');
+    }
     //this.notify(CellController.BLUR, this)
+  }
+
+  _on_cell_value () {
+    // Never update ths UI element when it's being edited
+    if (!this.focused) {
+      this.inputElement.value = this.cell.value;
+    }
+
+    this.inputElement.classList.remove('formula');
+    this.inputElement.classList.remove('formula-bad');
+  }
+
+  _on_cell_formula () {
+    this.inputElement.classList.add('formula');
+  }
+
+  _on_cell_formula_bad () {
+    this.inputElement.title = this.cell.error;
+    this.inputElement.classList.add('formula-bad');
+  }
+
+  _on_cell_formula_ok () {
+    this.inputElement.title = '=' + this.cell.formula;
+    this.inputElement.classList.remove('formula-bad');
   }
 };

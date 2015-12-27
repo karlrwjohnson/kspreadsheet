@@ -147,7 +147,7 @@ class TableController extends Observable {
     const targetController = this.getRelativeCellController(origin, CellController.NORTH);
 
     if (targetController) {
-      targetController.focus();
+      targetController.focused = true;
 
       // Prune empty rows at the bottom of the table
       if (parentElement.nextSibling === null &&
@@ -165,7 +165,7 @@ class TableController extends Observable {
       this.model.height ++;
     }
 
-    this.getRelativeCellController(origin, CellController.SOUTH).focus()
+    this.getRelativeCellController(origin, CellController.SOUTH).focused = true
   }
 
   _on_navigate_newline (origin) {
@@ -176,12 +176,12 @@ class TableController extends Observable {
       this.model.height ++;
     }
 
-    parentElement.nextSibling.children[0].controller.focus();
+    parentElement.nextSibling.children[0].controller.focused = true;
   }
 
   _on_navigate_west (origin) {
     if (origin.element.previousSibling !== null) {
-      this.getRelativeCellController(origin, CellController.WEST).focus();
+      this.getRelativeCellController(origin, CellController.WEST).focused = true;
 
       // Prune empty columns at the right edge of the table
       if (origin.element.nextSibling === null &&
@@ -200,7 +200,7 @@ class TableController extends Observable {
           this.model.columns[this.model.width - 2].width;
     }
 
-    this.getRelativeCellController(origin, CellController.EAST).focus();
+    this.getRelativeCellController(origin, CellController.EAST).focused = true;
   }
 
   _on_navigate_previous (origin) {
@@ -208,7 +208,7 @@ class TableController extends Observable {
     const parentElement = origin.element.parentElement;
     if (origin.element.previousSibling === null && parentElement.previousSibling !== null) {
       const parentPreviousSibling = parentElement.previousSibling;
-      parentPreviousSibling.children[parentPreviousSibling.children.length - 1].controller.focus();
+      parentPreviousSibling.children[parentPreviousSibling.children.length - 1].controller.focused = true;
     }
     else {
       this._on_navigate_west(origin);
@@ -287,7 +287,7 @@ class TableController extends Observable {
   }
 
   focus () {
-    this.rowContainer.children[0].children[0].controller.focus();
+    this.rowContainer.children[0].children[0].controller.focused = true;
   }
 
   get focusedCellController () { return this._focusedCellController; }
@@ -320,7 +320,7 @@ class TableController extends Observable {
       this.model.spliceRows(rowIndex, 1, 0);
 
       // Move the focus to the new row
-      this.getRelativeCellController(previouslyFocused, CellController.NORTH).focus();
+      this.getRelativeCellController(previouslyFocused, CellController.NORTH).focused = true;
     }
     else {
       throw Error('No cell is focused');
@@ -339,7 +339,7 @@ class TableController extends Observable {
 
       this.model.spliceRows(rowIndex, 0, 1);
 
-      focusNext.focus()
+      focusNext.focused = true
     }
     else {
       throw Error('No cell is focused');
@@ -360,7 +360,7 @@ class TableController extends Observable {
           this.model.columns[columnIndex + 1].width;
 
       // Move the focus to the new column
-      this.getRelativeCellController(previouslyFocused, CellController.WEST).focus();
+      this.getRelativeCellController(previouslyFocused, CellController.WEST).focused = true;
     }
     else {
       throw Error('No cell is focused');
@@ -378,7 +378,7 @@ class TableController extends Observable {
       const columnIndex = Dom.getIndexOfElementInParent(cellElement);
       this.model.spliceColumns(columnIndex, 0, 1);
 
-      focusNext.focus()
+      focusNext.focused = true
     }
     else {
       throw Error('No cell is focused');

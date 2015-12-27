@@ -58,8 +58,8 @@ class Table extends Observable {
   toJSON () {
     return {
       position: this.position,
-      columns: this.columns.map(column => column.toJSON()),
-      data: this.data.map(row => row.map(cell => cell.toJSON()))
+      columns: this.columns,
+      data: this.data
     }
   }
 

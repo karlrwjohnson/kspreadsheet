@@ -207,13 +207,13 @@ module.exports = Object.freeze({
   },
 
   /**
-   * Yields all constructors of an object starting with the most recent
+   * Yields all prototypes of an object starting with the most recent
    */
-  * getConstructors (object) {
+  * getPrototypes (object) {
     for (let prototype = Object.getPrototypeOf(object);
          prototype !== null;
          prototype = Object.getPrototypeOf(prototype)) {
-      yield prototype.constructor;
+      yield prototype;
     }
   },
 

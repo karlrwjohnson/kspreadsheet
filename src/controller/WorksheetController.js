@@ -63,8 +63,6 @@ class WorksheetController extends Observable {
 
     this._worksheet = _;
 
-    console.log(_);
-
     this._worksheet_observers.push(this.worksheet.observe(Worksheet.ADD_TABLE, this._on_addTable));
     this._worksheet_observers.push(this.worksheet.observe(Worksheet.REMOVE_TABLE, this._on_removeTable));
 
@@ -104,18 +102,14 @@ class WorksheetController extends Observable {
   }
 
   _on_dblclick(evt) {
-    console.log('_on_dblclick', evt);
-    //if (evt.target === this.element) {
-      console.log(evt);
-      if (evt.buttons === CREATE_TABLE_BUTTON) {
-        const emSize = libview.getEmSize(this.element);
-        const em_x = Math.round(evt.offsetX / emSize);
-        const em_y = Math.round(evt.offsetY / emSize);
-        const newTable = new Table();
-        newTable.position = [em_x, em_y];
-        this.worksheet.addTable(newTable);
-      }
-    //}
+    if (evt.buttons === CREATE_TABLE_BUTTON) {
+      const emSize = libview.getEmSize(this.element);
+      const em_x = Math.round(evt.offsetX / emSize);
+      const em_y = Math.round(evt.offsetY / emSize);
+      const newTable = new Table();
+      newTable.position = [em_x, em_y];
+      this.worksheet.addTable(newTable);
+    }
   }
 
   _on_table_controller_empty_blur(table) {

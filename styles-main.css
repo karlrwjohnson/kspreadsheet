@@ -142,6 +142,7 @@
   margin-left:-0.2em;
   z-index: 1;
 }
+
 .worksheet input {
   font: inherit;
   padding: 0 0.5em;
@@ -163,10 +164,17 @@
 }
 @media screen {
   .worksheet input:focus {
-    outline: none;
+    outline: none; /* disable Chromium default style */
     box-shadow: 0.05em 0.05em 0.4em 0.15em rgba(0, 85, 255, 0.4) inset;
   }
 }
+.worksheet input.formula {
+  box-shadow: 0.05em 0.05em 0.4em 0.15em rgba(0, 0, 0, 0.2) inset;
+}
+.worksheet input.formula-bad {
+  box-shadow: 0.05em 0.05em 0.4em 0.15em rgba(255, 0, 0, 0.4) inset;
+}
+
 .worksheet tr:first-child td:first-child,
 .worksheet tr:first-child td:first-child input {
   border-top-left-radius:0.5em;
