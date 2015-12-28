@@ -60,6 +60,9 @@ class CellController extends Observable {
     this.inputElement.addEventListener('focus', this._on_focus);
     this.inputElement.addEventListener('blur', this._on_blur);
 
+    // Intercept paste events into cells
+    this.inputElement.addEventListener('paste', evt => evt.stopPropagation());
+
     this.cell = cell;
     this.column = column;
   }

@@ -38,6 +38,7 @@ class WorksheetController extends Observable {
 
     this.element.addEventListener('click', this._on_click);
     this.element.addEventListener('dblclick', this._on_dblclick);
+    this.element.addEventListener('paste', this._on_paste);
 
     this.worksheet = worksheet;
   }
@@ -123,6 +124,26 @@ class WorksheetController extends Observable {
   _on_table_controller_blur(table) {
     if (this.focusedTable === table) {
       this.focusedTable = null;
+    }
+  }
+
+  _on_paste (evt) {
+    const pasteText = evt.clipboardData.getData('text');
+    if (pasteText !== '') {
+      evt.preventDefault();
+      const tableData = pasteText
+        .replace(/\r$|\r?\n$/, '')
+        .split(/[\r\n]+/)
+        .map(rowText => rowText.split('\t'));
+      const newTable = new Table();
+      newTable.height = tableData.length;
+      newTable.width = tableData.map(row => row.length).reduce((a, b) => Math.max(a, b));
+      tableData.forEach((rowData, r) =>
+        rowData.forEach((cellData, c) =>
+          newTable.getCell(r, c).value = cellData
+        )
+      );
+      this.worksheet.addTable(newTable);
     }
   }
 
