@@ -1,6 +1,10 @@
+*.iml
 nwjs
 node
 .idea
 node_modules
 chromedriver
 selenium-server-standalone-*.jar
+src/**/*.js
+src/**/*.js.map
+bundle.js

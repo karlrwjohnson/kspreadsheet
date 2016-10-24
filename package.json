@@ -6,18 +6,19 @@
     "width": 800,
     "height": 600
   },
-  "chromium-args": "--javascript-harmony",
-
   "license": "UNLICENSED",
   "dependencies": {
     "jasmine-core": "2.4.1",
     "webdriverio": "3.3.0"
   },
-
   "repository": {
     "type": "git",
     "url": "https://github.com/karlrwjohnson/kspreadsheet.git"
   },
-
-  "description": "Go away, it's not ready yet."
+  "description": "Go away, it's not ready yet.",
+  "devDependencies": {
+    "browserify": "^13.1.0",
+    "tsify": "^2.0.2",
+    "typescript": "^2.0.3"
+  }
 }

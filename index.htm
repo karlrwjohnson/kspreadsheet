@@ -10,39 +10,5 @@
 <body>
 </body>
 
-<script>
-  'use strict';
-
-  // Shut up, WebStorm. "nw" is totally a global variable.
-  var nw;
-
-  //noinspection JSUnresolvedFunction,JSUnresolvedVariable
-  //nw.Window.get().showDevTools();
-
-  nw.path = nw.require('path');
-  const require = nw.root.endsWith('/nwjs/resources/nwjs_default_app') ?
-      function require(path) {
-        // Kludge: require() using relative paths is broken when running
-        // under Selenium.
-        const realRoot = nw.root.replace(/\/nwjs\/resources\/nwjs_default_app/, '');
-        return nw.require(nw.path.isAbsolute(path) ? path : nw.path.join(realRoot, path));
-      } :
-      nw.require;
-
-  // Configure workaround for bug where imported modules don't execute in the
-  // same context
-  require('./src/util/GUIWindow').window = window;
-
-  // Imports
-  const ApplicationController = require('./src/controller/ApplicationController');
-
-  // Globals
-  const applicationController = new ApplicationController();
-
-  // Build page
-  document.body.appendChild(applicationController.element);
-
-  console.log('ok');
-
-</script>
+<script src="bundle.js"></script>
 </html>

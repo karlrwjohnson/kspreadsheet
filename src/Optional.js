@@ -1,68 +1,63 @@
 'use strict';
-
 class Optional {
-  constructor (thing) {
-    this._thing = thing;
-  }
-
-  static of (thing) {
-    if (thing === null || thing === undefined) {
-      throw new Error('Optional.of() cannot be called with argument ' + thing +
-        '. Try ofNullable instead.');
+    constructor(thing) {
+        this._thing = thing;
     }
-    return new Optional(thing);
-  }
-
-  static ofNullable (thing) {
-    return new Optional(thing);
-  }
-
-  static ofNull () {
-    return new Optional(null);
-  }
-
-  static ofUndefined () {
-    return new Optional(undefined);
-  }
-
-  get() {
-    if (this.has()) {
-      return this._thing;
+    static of(thing) {
+        if (thing === null || thing === undefined) {
+            throw new Error('Optional.of() cannot be called with argument ' + thing +
+                '. Try ofNullable instead.');
+        }
+        return new Optional(thing);
     }
-    else {
-      throw new Error('Cannot get value ' + this._thing + ' from Optional.');
+    static ofNullable(thing) {
+        return new Optional(thing);
     }
-  }
-
-  has() {
-    return this._thing !== null && this._thing !== undefined;
-  }
-
-  orElseGet(otherThing) {
-    if (this.has()) {
-      return this._thing;
+    static ofNull() {
+        return new Optional(null);
     }
-    else {
-      return otherThing;
+    static ofUndefined() {
+        return new Optional(undefined);
     }
-  }
-
-  orElseThrow(error) {
-    if (this.has()) {
-      return this._thing;
+    get() {
+        if (this.has()) {
+            return this._thing;
+        }
+        else {
+            throw new Error('Cannot get value ' + this._thing + ' from Optional.');
+        }
     }
-    else {
-      throw error;
+    has() {
+        return this._thing !== null && this._thing !== undefined;
     }
-  }
+    orElseGet(otherThing) {
+        if (this.has()) {
+            return this._thing;
+        }
+        else {
+            return otherThing;
+        }
+    }
+    orElseThrow(error) {
+        if (this.has()) {
+            return this._thing;
+        }
+        else {
+            throw error;
+        }
+    }
+    ifPresent(callback) {
+        if (this.has()) {
+            callback(this._thing);
+        }
+    }
 }
-
+exports.Optional = Optional;
 Object.defineProperty(Optional.prototype, Symbol.iterator, {
-  value: function * Optional_iterator_impl () {
-    if (this.has()) {
-     yield this.get();
+    value: function* Optional_iterator_impl() {
+        if (this.has()) {
+            yield this.get();
+        }
     }
-  }
 });
-
-module.exports = Optional;
+//# sourceMappingURL=Optional.js.map
